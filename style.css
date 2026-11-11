@@ -63,3 +63,7 @@ h2{font-family:system-ui,sans-serif;font-weight:800;letter-spacing:-.045em}
 .personal-route .street-map-wrap{min-height:0;padding:16px;background:#edf0f4}.personal-route .map-focus{position:static;width:100%;max-width:none;margin:0}.personal-route .route-player{justify-content:flex-start}
 
 .intro .intro-city{margin-top:8px;font-size:.92rem;font-weight:700;color:var(--ink)}
+
+.campus-building{fill:#73808d;stroke:#a8b4c0;stroke-width:1}.campus-guide{fill:none;stroke:#e8c772;stroke-width:1.5}.campus-gate{fill:none;stroke:#fff;stroke-width:2.5;stroke-dasharray:3 2}.gate-label{fill:#fff;font:650 10px system-ui;paint-order:stroke;stroke:#303640;stroke-width:3}
+.map-stop-sign path{fill:#b7372f;stroke:white;stroke-width:1.5}.map-stop-sign text{fill:white;font:800 6px system-ui}
+.route-car-left,.route-car-right{opacity:0}#route-car[data-signal=none] .route-car-left,#route-car[data-signal=none] .route-car-right{opacity:0;animation:none}

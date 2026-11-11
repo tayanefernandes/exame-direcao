@@ -7,7 +7,7 @@ Site de estudo do percurso da prova prática de direção em Sorocaba.
 - Duas opções de estacionamento, volante animado e foto aérea do pátio.
 - Percurso com etapas selecionáveis e instruções de seta e marcha.
 - Parada no portão (ponto 6), seta à direita na saída e seta à esquerda antes da bifurcação.
-- Anotações pessoais salvas no navegador de cada visitante.
+- Setas com antecedência, desligamento após as manobras e paradas no portão e na placa PARE da Cabreúva.
 
 O percurso e os movimentos do volante são ilustrativos. Confira as condições do local e as orientações do instrutor.
 
