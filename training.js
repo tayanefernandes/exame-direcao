@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(previousRole===null)closing.removeAttribute('role');else closing.setAttribute('role',previousRole);
   if(previousModal===null)closing.removeAttribute('aria-modal');else closing.setAttribute('aria-modal',previousModal);
   inertNodes.forEach(({node,inert})=>{node.inert=inert;});inertNodes=[];
-  document.body.classList.remove('training-focus-open');placeholder?.remove();placeholder=null;
+  document.body.classList.remove('training-focus-open');placeholder?.before(closing);placeholder?.remove();placeholder=null;
   buttons.forEach(button=>{button.setAttribute('aria-pressed','false');button.setAttribute('aria-label',button.dataset.focusLabel);button.querySelector('.focus-button-label').textContent='Modo foco';});
   if(savedScroll)window.scrollTo({left:savedScroll.x,top:savedScroll.y,behavior:'instant'});
   origin?.focus({preventScroll:true});origin=null;savedScroll=null;
@@ -91,6 +91,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   opening=true;active=target;origin=button;savedScroll={x:window.scrollX,y:window.scrollY};
   previousRole=target.getAttribute('role');previousModal=target.getAttribute('aria-modal');
   const box=target.getBoundingClientRect();placeholder=document.createElement('div');placeholder.style.height=`${box.height}px`;placeholder.setAttribute('aria-hidden','true');target.before(placeholder);
+  // Fora das camadas das seções, o fallback cobre a página em qualquer rolagem.
+  document.body.append(target);
   let branch=target;
   while(branch.parentElement&&branch.parentElement!==document.documentElement){
    Array.from(branch.parentElement.children).filter(node=>node!==branch).forEach(node=>{inertNodes.push({node,inert:node.inert});node.inert=true;});branch=branch.parentElement;
