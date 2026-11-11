@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(previousModal===null)closing.removeAttribute('aria-modal');else closing.setAttribute('aria-modal',previousModal);
   inertNodes.forEach(({node,inert})=>{node.inert=inert;});inertNodes=[];
   document.body.classList.remove('training-focus-open');placeholder?.before(closing);placeholder?.remove();placeholder=null;
-  buttons.forEach(button=>{button.setAttribute('aria-pressed','false');button.setAttribute('aria-label',button.dataset.focusLabel);button.querySelector('.focus-button-label').textContent='Modo foco';});
+  buttons.forEach(button=>{button.setAttribute('aria-pressed','false');button.setAttribute('aria-label',button.dataset.focusLabel);button.querySelector('.focus-button-label').textContent='Tela cheia';});
   if(savedScroll)window.scrollTo({left:savedScroll.x,top:savedScroll.y,behavior:'instant'});
   origin?.focus({preventScroll:true});origin=null;savedScroll=null;
  }
@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
   if(target.id==='patio-player')pauseRoute();else{stop();update();}
   target.classList.add('training-focused');target.setAttribute('role','dialog');target.setAttribute('aria-modal','true');target.dataset.fullscreenMode='page';document.body.classList.add('training-focus-open');
-  button.setAttribute('aria-pressed','true');button.setAttribute('aria-label','Sair do modo foco');button.querySelector('.focus-button-label').textContent='Sair do foco';
+  button.setAttribute('aria-pressed','true');button.setAttribute('aria-label','Sair da tela cheia');button.querySelector('.focus-button-label').textContent='Sair da tela cheia';
   if(document.fullscreenEnabled&&target.requestFullscreen){
    native=true;
    try{await target.requestFullscreen();target.dataset.fullscreenMode='native';}catch{native=false;}
