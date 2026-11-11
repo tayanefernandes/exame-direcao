@@ -178,7 +178,7 @@ function updateMapCamera(point=mapPoint){
  const base={x:-15,y:5,width:625,height:505};
  const width=base.width/mapZoom,height=base.height/mapZoom;
  const x=mapZoom===1?base.x:point.x-width/2;
- const y=mapZoom===1?base.y:point.y-height*.34;
+ const y=mapZoom===1?base.y:point.y-height*(compactMap.matches ? .68 : .57);
  $('street-map').setAttribute('viewBox',`${x} ${y} ${width} ${height}`);
  setText('map-zoom-level',`${Math.round(mapZoom*100)}%`);
  $('map-zoom-out').disabled=mapZoom<=1;$('map-zoom-in').disabled=mapZoom>=2.4;
