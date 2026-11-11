@@ -100,17 +100,18 @@ function renderRoute(focus=false){
  $('patio-map-stop').setAttribute('transform',`translate(62 ${place==='near'?168:112})`);
  $('patio-map-stop').setAttribute('aria-label',`Etapas 4 e 5: opção ${options[place].number}, ${options[place].title.toLowerCase()}`);
  $('patio-stop-label').textContent=`4 · Opção ${options[place].number}: ${options[place].title.toLowerCase()}`;
- const buttons=route.map((row,i)=>{const li=document.createElement('li'),b=document.createElement('button'),n=document.createElement('span');b.type='button';b.className='waypoint';if(i===index)b.setAttribute('aria-current','step');n.textContent=String(i+1).padStart(2,'0');b.append(n,document.createTextNode(row.location||lessons[row.kind][0]));b.onclick=()=>{index=i;renderRoute(true);};li.append(b);return li;});
+ const buttons=route.map((row,i)=>{const li=document.createElement('li'),b=document.createElement('button'),n=document.createElement('span');b.type='button';b.className='waypoint';if(i===index)b.setAttribute('aria-current','step');n.textContent=String(i+1).padStart(2,'0');b.append(n,document.createTextNode(row.location||lessons[row.kind][0]));b.onclick=()=>{selectRouteStep(i);};li.append(b);return li;});
  $('route-list').replaceChildren(...buttons);
  $('way-count').textContent=`ETAPA ${index+1} DE ${route.length}`;
  $('way-title').textContent=index===3&&!personalMode?`Opção ${options[place].number}: ${options[place].title.toLowerCase()}`:step.location||title;
  $('way-description').textContent=(step.description||(step.location?title+'. ':'')+description);
  $('way-signal').textContent=step.signal||signal;$('way-gear').textContent=step.gear||gear;
  $('way-prev').disabled=index===0;$('way-next').disabled=index===route.length-1;
+ if(window.syncMapPlayer)window.syncMapPlayer();
  if(focus)buttons[index].firstChild.focus();
 }
-$('way-prev').onclick=()=>{index--;renderRoute();};
-$('way-next').onclick=()=>{index++;renderRoute();};
+$('way-prev').onclick=()=>selectRouteStep(index-1);
+$('way-next').onclick=()=>selectRouteStep(index+1);
 function addRow(row={kind:'street',location:''}){
  if($('fields').children.length>=30)return;
  const wrapper=document.createElement('div');wrapper.className='editor-row';
@@ -126,13 +127,148 @@ function addRow(row={kind:'street',location:''}){
 $('customize').onclick=()=>{$('fields').replaceChildren();(personal||[{kind:'start',location:''}]).forEach(addRow);$('editor').showModal();};
 $('editor-close').onclick=()=>$('editor').close();
 $('add-step').onclick=()=>addRow();
-$('use-example').onclick=()=>{personalMode=false;index=0;$('editor').close();renderRoute();};
-$('route-form').onsubmit=e=>{e.preventDefault();personal=[...$('fields').children].map(row=>({location:row.querySelector('input').value.trim(),kind:row.querySelector('select').value}));personalMode=true;index=0;try{localStorage.setItem(storage,JSON.stringify(personal));}catch{}$('editor').close();renderRoute();};
+$('use-example').onclick=()=>{pauseRoute();personalMode=false;index=0;$('editor').close();renderRoute();};
+$('route-form').onsubmit=e=>{e.preventDefault();personal=[...$('fields').children].map(row=>({location:row.querySelector('input').value.trim(),kind:row.querySelector('select').value}));pauseRoute();personalMode=true;index=0;$('route-more').open=true;try{localStorage.setItem(storage,JSON.stringify(personal));}catch{}$('editor').close();renderRoute();};
+const mapInstructions=[
+ ['Saia da parada','Confira o entorno e saia devagar da lateral do Detran.','← Esquerda para sair','1ª para arrancar','left'],
+ ['Entre na Rua Cerquilho','Depois de alinhar, sinalize à direita para entrar na Cerquilho.','→ Direita','Reduza antes da curva','right'],
+ ['Entre no portão do Detran','Observe a calçada e entre à direita, bem devagar.','→ Direita','Marcha baixa; 1ª se parar','right'],
+ ['Encoste no pátio','Siga a opção indicada. Alinhe o carro junto à guia.','→ Direita para encostar','1ª, bem devagar','right'],
+ ['Saia da vaga até o portão','Confira o entorno. Saia da guia e siga até o portão da Diadema.','← Esquerda ao sair da guia','1ª, bem devagar','left'],
+ ['Pare no portão','Olhe para os dois lados. Quando estiver livre, saia à direita na Diadema.','→ Direita','Pare; retome em 1ª','right'],
+ ['Siga à esquerda na bifurcação','Sinalize antes da bifurcação e continue pela Rua Diadema.','← Esquerda','Compatível com a velocidade','left'],
+ ['Vire na Rua Sarapuí','Sinalize com antecedência e vire à direita.','→ Direita','Reduza antes da curva','right'],
+ ['Vire na Rua Cabreúva','Confira o PARE no local. Se houver, pare antes de entrar.','→ Direita','Se houver PARE: parar e 1ª','right'],
+ ['Vire na Rua Ribeirão Preto','Confira a preferência e entre à direita.','→ Direita','Reduza antes da curva','right'],
+ ['Fim do percurso','Siga a orientação do examinador. Encoste apenas se solicitado.','Direita se for encostar','Compatível com a velocidade','none']
+];
+let routePlaying=false,routeElapsed=0,routeLast=null,routeFrame=0,routeGeometryPlace=null;
+let routeSegments=[],routeLengths=[],routeTotalLength=0;
+function prepareMapPaths(){
+ if(routeGeometryPlace===place)return;
+ routeGeometryPlace=place;
+ const y=place==='near'?168:112;
+ const ds=[
+ 'M131 170 L128.6 213.1',
+ 'M128.6 213.1 L76 214',
+ `M76 214 Q63 207 63 184 L62 ${y+9}`,
+ `M62 ${y+9} Q57 ${y+2} 60 ${y-7} Q64 ${y-9} 64 ${y-18}`,
+ `M64 ${y-18} Q62 ${y-27} 63 ${y-35} L65 86 Q67 74 75 68`,
+ 'M75 68 Q82 63 101.6 59.2 L110.8 69.3 L127 90.1 L133.6 98.7',
+ 'M133.6 98.7 Q137 109 140.2 114.9 L164.6 143.2 L218.6 190.3 L280.2 231.1 L322.2 251.6 L368.6 270.4 L406.4 280.6 L449 289.2',
+ 'M449 289.2 L449.2 300.2 L458 354.2 L468 415.4 L469.4 428.3',
+ 'M469.4 428.3 L313.8 448.8 L170.8 467.4 L150.6 470',
+ 'M150.6 470 Q133 446 126.4 422.9 L122.6 357.3 L127.2 258',
+ 'M127.2 258 L127.2 258'
+ ];
+ routeSegments=ds.map(d=>{const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',d);return path;});
+ routeLengths=routeSegments.map(path=>path.getTotalLength());
+ routeTotalLength=routeLengths.reduce((a,b)=>a+b,0);
+ $('driven-route').setAttribute('d',ds.join(' '));
+}
+function routeHold(i){return i===0?3000:i===3?2500:i===5?5000:0;}
+function routeDuration(i){return routeHold(i)+clamp(routeLengths[i]*36,4000,13000);}
+function positionRouteCar(){
+ prepareMapPaths();
+ const hold=routeHold(index),duration=routeDuration(index),fraction=clamp((routeElapsed-hold)/(duration-hold),0,1);
+ const path=routeSegments[index],length=routeLengths[index],distance=length*fraction;
+ const point=path.getPointAtLength(distance),before=path.getPointAtLength(Math.max(0,distance-.8)),after=path.getPointAtLength(Math.min(length,distance+.8));
+ const angle=length?Math.atan2(after.y-before.y,after.x-before.x)*180/Math.PI+90:0;
+ $('route-car').setAttribute('transform',`translate(${point.x} ${point.y}) rotate(${angle})`);
+ $('route-car').setAttribute('aria-label',`Carrinho: etapa ${index+1}, ${mapInstructions[index][0]}`);
+ const completed=routeLengths.slice(0,index).reduce((a,b)=>a+b,0)+distance;
+ $('driven-route').style.strokeDasharray=`${completed} ${routeTotalLength+1}`;
+ $('route-progress').value=Math.round(Math.min(1,(index+clamp(routeElapsed/duration,0,1))/10)*1000);
+ $('route-position').textContent=`${index+1} / 11`;
+ $('map-stop').classList.toggle('waiting',index===5&&routeElapsed<hold);
+ if(index===5){
+  const preparingFork=fraction>.55;
+  $('map-stop').hidden=routeElapsed>=hold;
+  const title=preparingFork?'Prepare a bifurcação':mapInstructions[5][0];
+  if($('map-location').textContent!==title){
+   $('map-location').textContent=title;
+   $('map-action').textContent=preparingFork?'Após concluir a saída à direita, sinalize à esquerda antes de chegar à bifurcação.':mapInstructions[5][1];
+   $('map-signal').textContent=preparingFork?'← Esquerda antes da bifurcação':mapInstructions[5][2];
+   $('map-gear').textContent=preparingFork?'1ª; 2ª quando permitir':mapInstructions[5][3];
+  }
+  $('route-car').dataset.signal=preparingFork?'left':'right';
+ }
+ if(index===4){
+  $('route-car').dataset.signal=fraction>.3?'none':'left';
+  $('map-signal').textContent=fraction>.3?'Desligue após alinhar':mapInstructions[4][2];
+ }
+}
+function pauseRoute(){
+ routePlaying=false;routeLast=null;cancelAnimationFrame(routeFrame);
+ $('route-play').textContent=index===10?'↻ Repetir percurso':'▶ Reproduzir percurso';
+ $('route-play').setAttribute('aria-pressed','false');
+ $('route-car').classList.remove('moving');
+}
+function selectRouteStep(i){
+ pauseRoute();routeElapsed=0;
+ const route=personalMode&&personal?personal:examples;
+ index=clamp(i,0,route.length-1);renderRoute();
+}
+window.syncMapPlayer=()=>{
+ const route=personalMode&&personal?personal:examples;
+ $('street-figure').hidden=false;
+ $('street-map').hidden=personalMode;
+ $('street-figure').classList.toggle('personal-route',personalMode);
+ $('route-play').hidden=personalMode;$('route-reset').hidden=personalMode;
+ document.querySelector('.route-timeline').hidden=personalMode;
+ document.querySelector('.route-speed').hidden=personalMode;
+ $('map-option').hidden=personalMode||index<2||index>4;
+ $('map-action').hidden=personalMode;$('map-stop').hidden=personalMode||index!==5;
+ const select=$('route-jump');
+ select.replaceChildren(...route.map((step,i)=>new Option(`${i+1}. ${personalMode?step.location||lessons[step.kind][0]:mapInstructions[i][0]}`,String(i))));
+ select.value=String(index);
+ if(personalMode)return;
+ const [title,action,signal,gear,direction]=mapInstructions[index];
+ $('map-location').textContent=index===3?`${title}: opção ${options[place].number}`:title;
+ $('map-action').textContent=action;
+ $('map-signal').textContent=signal;$('map-gear').textContent=gear;
+ $('route-car').dataset.signal=direction;
+ $('route-play').textContent=routePlaying?'❚❚ Pausar percurso':index===10?'↻ Repetir percurso':'▶ Reproduzir percurso';
+ positionRouteCar();
+};
+function routeTick(now){
+ if(!routePlaying)return;
+ const delta=routeLast===null?0:Math.min(now-routeLast,100);routeLast=now;
+ routeElapsed+=delta*Number($('route-speed').value);
+ if(routeElapsed>=routeDuration(index)){
+  routeElapsed=0;index++;
+  if(index>=10){index=10;renderRoute();pauseRoute();return;}
+  renderRoute();
+ }
+ positionRouteCar();routeFrame=requestAnimationFrame(routeTick);
+}
+$('route-play').onclick=()=>{
+ if(routePlaying){pauseRoute();return;}
+ stop();
+ if(index===10){index=0;routeElapsed=0;renderRoute();}
+ routePlaying=true;routeLast=null;
+ $('route-play').textContent='❚❚ Pausar percurso';$('route-play').setAttribute('aria-pressed','true');
+ $('route-car').classList.add('moving');routeFrame=requestAnimationFrame(routeTick);
+};
+$('route-reset').onclick=()=>selectRouteStep(0);
+$('route-jump').onchange=e=>selectRouteStep(Number(e.target.value));
+$('route-progress').oninput=e=>{
+ pauseRoute();const value=Number(e.target.value)/100;
+ index=Math.min(10,Math.floor(value));prepareMapPaths();routeElapsed=(value-index)*routeDuration(index);renderRoute();
+};
+document.addEventListener('visibilitychange',()=>{if(document.hidden){pauseRoute();stop();}});
+
 renderRoute();
 
-window.refreshRoute=()=>renderRoute();
+window.refreshRoute=()=>{pauseRoute();routeElapsed=0;renderRoute();};
 document.querySelectorAll('[data-route-steps]').forEach(marker=>{
- const select=()=>{const indices=marker.dataset.routeSteps.split(',').map(Number);index=indices.includes(index)?indices[(indices.indexOf(index)+1)%indices.length]:indices[0];personalMode=false;renderRoute();};
+ const select=()=>{const indices=marker.dataset.routeSteps.split(',').map(Number);index=indices.includes(index)?indices[(indices.indexOf(index)+1)%indices.length]:indices[0];personalMode=false;selectRouteStep(index);};
  marker.addEventListener('click',select);
  marker.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select();}});
 });
+
+const compactMap=window.matchMedia('(max-width:720px)');
+function resizeRouteMap(){
+ $('street-map').setAttribute('viewBox',compactMap.matches?'-25 -20 620 550':'-20 -20 850 550');
+}
+compactMap.addEventListener('change',resizeRouteMap);resizeRouteMap();
