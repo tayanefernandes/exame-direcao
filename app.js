@@ -12,6 +12,7 @@ const phases = [
 ];
 let place='far',view='draw',t=0,playing=false,last=null,frame=0,activePhase=-1;
 $('base').innerHTML=BASE;
+const cockpit=new PatioCockpit($('cockpit-view'),$('base'));
 const clamp=(x,min,max)=>Math.max(min,Math.min(max,x));
 // A roda direita termina sobre a faixa, com a carroceria próxima à guia.
 const parkingTarget={stripeX:622,carScale:.7,rightWheelX:16.5};
@@ -63,6 +64,7 @@ function update(){
     $('phase-title').textContent=title;$('phase-detail').textContent=detail;
   }
   updatePatioSignal();
+  cockpit.render({x,y,angle:(u===0||u===1)?0:a,stripeY:PATHS[place].at(-1)[1],place,signal:$('driver-controls').dataset.signal,finished:t>=.82});
   $('progress').value=Math.round(t*1000);
   $('progress').style.setProperty('--progress',`${t*100}%`);
 }
@@ -79,6 +81,9 @@ function configure(){
   document.querySelectorAll('.option').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.place===place)));
   document.querySelectorAll('.view').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===view)));
   $('aerial').toggleAttribute('hidden',view!=='photo');$('base').toggleAttribute('hidden',view!=='draw');
+  $('scene').toggleAttribute('hidden',view==='cockpit');$('cockpit-view').hidden=view!=='cockpit';
+  $('cockpit-caption').hidden=view!=='cockpit';$('scene').closest('.map-wrap').dataset.view=view;
+  $('sim-view-tag').textContent=view==='cockpit'?'Vista do motorista':'Vista de cima';
   $('scene-title').textContent=(view==='photo'?'Foto aérea: ':'Desenho ilustrativo: ')+o.title;
   update();
 }

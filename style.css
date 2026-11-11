@@ -145,3 +145,29 @@ section[id]{scroll-margin-top:0;margin-bottom:0}.section-inner{position:relative
 @media(prefers-reduced-motion:reduce){#driver-controls #stalk-motion-arrow,#driver-controls #sim-dash-indicator{animation:none!important}}
 
 .sim-signal-banner[data-prompt=true]{background:#fff3bc;border-color:#e4b521;box-shadow:inset 3px 0 0 #efbd11}.sim-signal-banner[data-prompt=true] strong{color:#6d5109}
+
+/* Terceira visualização: câmera do motorista, sincronizada com a manobra. */
+.sim-top .view-switch button{white-space:nowrap}
+.cockpit-view{position:relative;height:550px;overflow:hidden;border-radius:9px;background:#bed0d6;isolation:isolate}
+#cockpit-scene{display:block;width:100%;height:100%;position:absolute;inset:0;z-index:0}
+.cockpit-frame{position:absolute;inset:0;display:block;width:100%;height:100%;z-index:1;pointer-events:none}
+.cockpit-view-label{position:absolute;z-index:3;top:17px;left:19px;background:#1a2933c9;border:1px solid #b5c9d033;border-radius:20px;padding:7px 10px;color:#f1f5f4;font-size:.55rem;font-weight:800;letter-spacing:.07em;backdrop-filter:blur(6px)}
+.cockpit-view-label span{font-weight:500;letter-spacing:0;color:#c2d1d6;border-left:1px solid #b5c9d04d;padding-left:7px;margin-left:6px}
+.cockpit-mirror{position:absolute;z-index:2;top:45%;right:3.5%;width:19%;max-width:170px;height:82px;border:6px solid #263540;border-radius:33% 18% 20% 24%;background:#899f93;box-shadow:0 3px 6px #14212b55}
+#cockpit-mirror{display:block;width:100%;height:100%;border-radius:inherit}
+.cockpit-mirror span{position:absolute;bottom:-23px;right:0;font-size:.49rem;line-height:1.2;font-weight:650;color:#e7eef0;background:#263540e6;padding:4px 7px;border-radius:10px;white-space:nowrap}
+.cockpit-dashboard-arrow{opacity:0}.cockpit-view[data-signal=right] .cockpit-dashboard-arrow{opacity:1;animation:route-blinker .8s steps(2,end) infinite}
+.map-wrap[data-view=cockpit]{background:#1c2831}.map-wrap[data-view=cockpit]>.map-key{display:none}
+.cockpit-caption{margin:10px 1px 0;color:#a9bbc2;font-size:.64rem;line-height:1.45}
+.map-wrap[data-view=cockpit]>.wheel-row{left:4%;right:auto;bottom:42px;width:275px}
+.map-wrap[data-view=cockpit]>.wheel-row svg{width:275px;height:220px;filter:drop-shadow(0 3px 4px #050b10aa)}
+.map-wrap[data-view=cockpit]>.wheel-row>div,.map-wrap[data-view=cockpit]>.wheel-row .stalk-caption{display:none}
+.map-wrap[data-view=cockpit] #driver-controls>circle:first-child{fill:#14212bd9;stroke:#52626d;stroke-width:.5}
+.map-wrap[data-view=cockpit] #wheel>circle{stroke:#8c989f}.map-wrap[data-view=cockpit] #wheel>path[fill]{fill:#596974}
+.map-wrap[data-view=cockpit] #turn-stalk>path:first-child{stroke:#9aa8ad}.map-wrap[data-view=cockpit] #turn-stalk>rect{fill:#52616b}
+.map-wrap[data-view=cockpit] #sim-dash-indicator{fill:#ffce35}
+@media(max-width:1050px){.cockpit-view{height:520px}.map-wrap[data-view=cockpit]>.wheel-row{left:1%;bottom:42px;width:240px}.map-wrap[data-view=cockpit]>.wheel-row svg{width:240px;height:192px}.cockpit-mirror{height:71px}.cockpit-view-label{left:15px;top:15px;font-size:.5rem}}
+@media(max-width:850px){.map-wrap[data-view=cockpit]>.wheel-row{left:0;bottom:45px;width:210px}.map-wrap[data-view=cockpit]>.wheel-row svg{width:210px;height:168px}.cockpit-mirror{width:22%;height:68px;right:3%;border-width:5px}.cockpit-mirror span{font-size:.43rem;padding:4px 6px}.cockpit-view-label{left:12px;top:12px;font-size:.46rem;padding:6px 8px}.cockpit-caption{font-size:.6rem}}
+@media(max-width:640px){.sim-top .view-switch{width:100%;display:flex}.sim-top .view-switch button{flex:1;font-size:.62rem;padding:8px 9px}.cockpit-view{height:min(440px,112vw);min-height:340px}.map-wrap[data-view=cockpit]>.wheel-row{left:0;bottom:42px;width:220px}.map-wrap[data-view=cockpit]>.wheel-row svg{width:220px;height:176px}.cockpit-mirror{width:22%;height:62px;border-width:4px;top:42%;right:3%}.cockpit-view-label{font-size:.46rem;left:12px;top:12px}.cockpit-mirror span{font-size:.42rem;bottom:-21px}.cockpit-caption{font-size:.59rem;line-height:1.4;margin-top:9px}}
+@media(max-width:370px){.map-wrap[data-view=cockpit]>.wheel-row{width:195px;bottom:43px}.map-wrap[data-view=cockpit]>.wheel-row svg{width:195px;height:156px}.cockpit-view-label span{display:none}}
+@media(prefers-reduced-motion:reduce){.cockpit-dashboard-arrow{animation:none!important}}
