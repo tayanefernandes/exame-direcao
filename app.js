@@ -8,7 +8,7 @@ const phases = [
   ['Prepare a aproximação','Observe os retrovisores e o entorno. Sinalize à direita antes de se aproximar.','→ Direita'],
   ['Aproxime da guia','Avance devagar em direção à guia, deixando espaço para alinhar o carro.','→ Direita'],
   ['Alinhe as rodas','Corrija à esquerda para ficar paralela. Se a seta desarmar e você ainda estiver encostando, sinalize à direita novamente.','→ Direita'],
-  ['Confira a parada','Pare paralela e confira a distância da guia. Siga a orientação do examinador para finalizar.','Seta desligada']
+  ['Confira a parada','Pare paralela e confira a distância da guia. Com o carro parado, coloque em ponto morto e puxe o freio de mão.','Seta desligada']
 ];
 let place='far',view='draw',t=0,playing=false,last=null,frame=0,activePhase=-1;
 $('base').innerHTML=BASE;
@@ -66,7 +66,7 @@ const routeSteps=ROUTE_MODEL.steps;
 function prepareMapPaths(){
  if(geometryPlace===place)return;
  geometryPlace=place;
- const paths=ROUTE_MODEL.paths(place);
+ const paths=ROUTE_MODEL.rightLanePaths(place).map(points=>points.map((p,i)=>`${i?'L':'M'} ${p.x.toFixed(3)} ${p.y.toFixed(3)}`).join(' '));
  routeSegments=paths.map(d=>{const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',d);return path;});
  routeLengths=routeSegments.map(path=>path.getTotalLength());
  routeTotalLength=routeLengths.reduce((a,b)=>a+b,0);
@@ -100,7 +100,7 @@ function positionRouteCar(){
  setText('map-action',cue.action);setText('map-signal',cue.signalText);setText('map-gear',cue.gear);
  $('route-car').dataset.gear=String(cue.gearNumber);
  $('gear-banner').dataset.change=cue.gearChange;
- setText('gear-number',`${cue.gearNumber}ª`);setText('gear-label',cue.gearLabel);setText('gear-hint',cue.gearHint);
+ setText('gear-number',typeof cue.gearNumber==='number'?`${cue.gearNumber}ª`:cue.gearNumber);setText('gear-label',cue.gearLabel);setText('gear-hint',cue.gearHint);
  setText('map-stop',cue.stop);$('map-stop').hidden=!cue.stop;$('map-stop').classList.toggle('waiting',cue.stopActive);
  const completed=routeLengths.slice(0,index).reduce((a,b)=>a+b,0)+distance;
  $('driven-route').style.strokeDasharray=`${completed} ${routeTotalLength+1}`;
@@ -170,8 +170,8 @@ function updateMapCamera(point=mapPoint){
  mapPoint=point;
  const base={x:-15,y:5,width:625,height:505};
  const width=base.width/mapZoom,height=base.height/mapZoom;
- const x=mapZoom===1?base.x:clamp(point.x-width/2,base.x,base.x+base.width-width);
- const y=mapZoom===1?base.y:clamp(point.y-height/2,base.y,base.y+base.height-height);
+ const x=mapZoom===1?base.x:point.x-width/2;
+ const y=mapZoom===1?base.y:point.y-height/2;
  $('street-map').setAttribute('viewBox',`${x} ${y} ${width} ${height}`);
  setText('map-zoom-level',`${Math.round(mapZoom*100)}%`);
  $('map-zoom-out').disabled=mapZoom<=1;$('map-zoom-in').disabled=mapZoom>=2.4;

@@ -2,7 +2,7 @@
 // Geometria ilustrativa ajustada às referências fornecidas para este percurso.
 const ROUTE_MODEL={
  canopy:{x:94,y:126,width:30,height:30},
- parkedCars:[{x:169,y:156,angle:131},{x:188,y:173,angle:131},{x:207,y:190,angle:131}],
+ parkedCars:[{x:167.4,y:157.8,angle:131},{x:186.4,y:174.8,angle:131},{x:205.4,y:191.8,angle:131}],
  underCanopy(point){const r=this.canopy;return point.x>=r.x&&point.x<=r.x+r.width&&point.y>=r.y&&point.y<=r.y+r.height;},
  steps:[
   {title:'Saia da parada',location:'Sair da parada na Rua Ribeirão Preto',action:'Confira o entorno e saia da lateral do Detran. Depois de alinhar, desligue a seta.',gear:'1ª para sair'},
@@ -15,7 +15,7 @@ const ROUTE_MODEL={
   {title:'Vire na Rua Sarapuí',location:'Direita da Diadema para a Sarapuí',action:'Dê seta à direita antes da curva. Depois de alinhar na Sarapuí, desligue a seta.',gear:'Mantenha a marcha enquanto segue; 1ª após parar'},
   {title:'Pare e vire na Rua Cabreúva',location:'PARE da Sarapuí com a Cabreúva',action:'Sinalize à direita e pare na placa PARE. Confira o trânsito e vire quando estiver livre. Desligue ao alinhar.',gear:'1ª para retomar; 2ª depois de alinhar'},
   {title:'Vire na Rua Ribeirão Preto',location:'Direita da Cabreúva para a Ribeirão Preto',action:'Dê seta antes de virar à direita. Neste ponto não há placa de PARE indicada na referência. Observe a preferência.',gear:'Mantenha a marcha enquanto segue; 1ª após parar'},
-  {title:'Encoste para finalizar',location:'Estacionamento final na Rua Ribeirão Preto',action:'Dê seta à direita antes de encostar. Pare junto à guia e desligue a seta ao concluir.',gear:'2ª na aproximação; 1ª somente depois de parar'}
+  {title:'Encoste para finalizar',location:'Estacionamento final na Rua Ribeirão Preto',action:'Dê seta à direita antes de encostar. Após parar, coloque em ponto morto, puxe o freio de mão e desligue a seta.',gear:'Após parar: ponto morto e freio de mão'}
  ],
  paths(place){
   const y=place==='near'?171:113;
@@ -32,6 +32,20 @@ const ROUTE_MODEL={
    'M170.8 467.4 L156 469 Q149 471 144 459 L136.4 449.1 L126.4 422.9 L122.6 357.3 L126 285',
    'M126 285 L127.2 264 Q129 258 132 254 L132 246'
   ];
+ },
+ // Mantém as ruas na mão direita; o corredor do pátio conserva seu traçado.
+ rightLanePaths(place){
+  const paths=this.paths(place).map(sampleRoutePath);
+  return paths.map((points,index)=>points.map((point,i)=>{
+   const previous=i?points[i-1]:index?paths[index-1].at(-2):point;
+   const next=i<points.length-1?points[i+1]:index<paths.length-1?paths[index+1][1]:point;
+   const dx=next.x-previous.x,dy=next.y-previous.y,length=Math.hypot(dx,dy)||1;
+   const progress=i/(points.length-1);let offset=0;
+   if(index<=1||index>=5)offset=4;
+   if(index===1)offset*=Math.min(1,(1-progress)/.3);
+   if(index===5)offset*=Math.min(1,progress/.25);
+   return {x:point.x-dy/length*offset,y:point.y+dx/length*offset};
+  }));
  },
  // A fração de movimento inclui as paradas reais, sem pausas nas curvas 7, 8 e 10.
  timing(index,elapsed,length){
@@ -56,7 +70,7 @@ const ROUTE_MODEL={
    else if(phase==='resume'&&fraction<.2){number=1;}
    else{number=2;if(phase==='resume'&&fraction<.32)change='up';}
   }
-  if(index===10&&stopped){number=1;change='down';}
+  if(index===10&&stopped)return {gearNumber:'N',gearChange:'finish',gearLabel:'PONTO MORTO',gearHint:'Com o carro parado, coloque em ponto morto e puxe o freio de mão.',gear:'Freio de mão acionado'};
   const label=change==='up'?'PASSE PARA A 2ª':change==='down'?'ENGATE A 1ª':`MANTENHA A ${number}ª`;
   const hint=stopped?(index===10?'Carro parado. Finalize conforme a orientação do examinador.':'Com o carro parado, engate a 1ª para retomar.'):
    change==='up'?'Depois de embalar e quando a velocidade permitir.':number===1?'Retome e avance com controle do carro.':'Reduza a velocidade quando necessário, mantendo a 2ª enquanto segue.';
@@ -101,7 +115,25 @@ const ROUTE_MODEL={
    if(fraction<.24)on('right');
    else if(fraction>.78){on('right','→ Direita antes de estacionar');cue.title='Prepare o estacionamento final';cue.action='Sinalize à direita com antecedência, antes de se aproximar da guia.';cue.gear='Reduza para encostar';}
   }
-  if(index===10){if(!stopped)on('right','→ Direita para encostar');else{cue.title='Percurso concluído';cue.action='Carro parado junto à guia. Seta desligada.';cue.gear='Carro parado';}}
+  if(index===10){if(!stopped)on('right','→ Direita para encostar');else{cue.title='Percurso concluído';cue.action='Com o carro parado, coloque em ponto morto e puxe o freio de mão. Desligue a seta para finalizar.';cue.gear='Ponto morto e freio de mão';}}
   return Object.assign(cue,this.gearFor(index,fraction,stopped,phase));
  }
 };
+
+// Amostragem das curvas para posicionar o carro no lado correto das ruas.
+function sampleRoutePath(d){
+ const tokens=d.match(/[MLQ]|-?\d+(?:\.\d+)?/g);let cursor=0,x=0,y=0;const points=[];
+ while(cursor<tokens.length){
+  const command=tokens[cursor++];
+  if(command==='M'){x=Number(tokens[cursor++]);y=Number(tokens[cursor++]);points.push({x,y});continue;}
+  if(command==='L'){
+   const nx=Number(tokens[cursor++]),ny=Number(tokens[cursor++]),count=Math.max(1,Math.ceil(Math.hypot(nx-x,ny-y)/2));
+   for(let i=1;i<=count;i++){const t=i/count;points.push({x:x+(nx-x)*t,y:y+(ny-y)*t});}x=nx;y=ny;
+  }else if(command==='Q'){
+   const cx=Number(tokens[cursor++]),cy=Number(tokens[cursor++]),nx=Number(tokens[cursor++]),ny=Number(tokens[cursor++]);
+   const count=Math.max(8,Math.ceil((Math.hypot(cx-x,cy-y)+Math.hypot(nx-cx,ny-cy))/2));
+   for(let i=1;i<=count;i++){const t=i/count;points.push({x:(1-t)**2*x+2*(1-t)*t*cx+t*t*nx,y:(1-t)**2*y+2*(1-t)*t*cy+t*t*ny});}x=nx;y=ny;
+  }else throw new Error('Traçado inválido');
+ }
+ return points;
+}
