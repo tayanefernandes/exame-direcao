@@ -1,6 +1,7 @@
 'use strict';
 // Geometria ilustrativa ajustada às referências fornecidas para este percurso.
 const ROUTE_MODEL={
+ exitStop:{x:102,y:90},
  canopy:{x:94,y:126,width:30,height:30},
  parkedCars:[{x:167.4,y:157.8,angle:131},{x:186.4,y:174.8,angle:131},{x:205.4,y:191.8,angle:131}],
  underCanopy(point){const r=this.canopy;return point.x>=r.x&&point.x<=r.x+r.width&&point.y>=r.y&&point.y<=r.y+r.height;},
@@ -10,7 +11,7 @@ const ROUTE_MODEL={
   {title:'Entre no portão do Detran',location:'Entrada do pátio pela Rua Cerquilho',action:'Entre à direita no corredor. Entre as vagas 1 e 2, o carro passa por baixo do telhado quadrado.',gear:'1ª, bem devagar'},
   {title:'Encoste no pátio',location:'Estacionamento no pátio',action:'Dê seta à direita antes de encostar. Alinhe o carro e desligue a seta ao concluir.',gear:'1ª; pare junto à guia'},
   {title:'Saia da vaga até o portão',location:'Saída da vaga pelo corredor do pátio',action:'Dê seta à esquerda para sair da vaga. Desligue após alinhar e siga pelo corredor até a saída.',gear:'1ª, bem devagar'},
-  {title:'Pare no portão de saída',location:'Saída do pátio para a Rua Diadema',action:'Pare no portão indicado. Olhe os dois lados e entre à direita na Rua Diadema quando estiver livre.',gear:'1ª na saída; 2ª ao embalar'},
+  {title:'Pare no portão de saída',location:'Saída do pátio para a Rua Diadema',action:'Pare no portão, ainda na calçada e antes de entrar na rua. Olhe os dois lados e entre à direita na Rua Diadema quando estiver livre.',gear:'1ª na saída; 2ª ao embalar'},
   {title:'Bifurcação e carros estacionados',location:'Bifurcação e desvio na Rua Diadema',action:'Sinalize na bifurcação. Depois, confira o trânsito e sinalize para desviar dos carros estacionados à direita e retornar com segurança.',gear:'2ª enquanto segue'},
   {title:'Vire na Rua Sarapuí',location:'Direita da Diadema para a Sarapuí',action:'Dê seta à direita antes da curva. Depois de alinhar na Sarapuí, desligue a seta.',gear:'Mantenha a marcha enquanto segue; 1ª após parar'},
   {title:'Pare e vire na Rua Cabreúva',location:'PARE da Sarapuí com a Cabreúva',action:'Sinalize à direita e pare na placa PARE. Confira o trânsito e vire quando estiver livre. Desligue ao alinhar.',gear:'1ª para retomar; 2ª depois de alinhar'},
@@ -18,14 +19,14 @@ const ROUTE_MODEL={
   {title:'Encoste para finalizar',location:'Estacionamento final na Rua Ribeirão Preto',action:'Dê seta à direita antes de encostar. Após parar, coloque em ponto morto, puxe o freio de mão e desligue a seta.',gear:'Após parar: ponto morto e freio de mão'}
  ],
  paths(place){
-  const y=place==='near'?171:113;
+  const y=place==='near'?171:113,{x:exitX,y:exitY}=this.exitStop;
   return [
    'M131 170 Q129 175 130 188',
    'M130 188 L129 204 Q129 213 120 213 L108 213',
    `M108 213 Q102 213 102 204 L102 ${y+22}`,
    `M102 ${y+22} Q103 ${y+13} 109 ${y+8} Q112 ${y+5} 112 ${y}`,
-   `M112 ${y} Q112 ${y-8} 106 ${y-14} Q102 ${y-20} 102 ${y-27} L102 82 L102 59.2`,
-   'M102 59.2 L102 56 Q102 48 109 55 Q113 61 116 70 L123 85',
+   `M112 ${y} Q112 ${y-8} 106 ${y-14} Q102 ${y-17} 102 ${y-20} L${exitX} ${exitY}`,
+   `M${exitX} ${exitY} L102 83 Q102 70 112 78 Q117 80 123 85`,
    'M123 85 L133.6 98.7 Q137 109 140.2 114.9 L148 123 Q153 129 158 132 L176 149 L207 176 L230 197 Q239 205 242 209 L280.2 231.1 L322.2 251.6 L368.6 270.4 L406.4 280.6',
    'M406.4 280.6 L438 287 Q449 289 450 300.2 L458 354.2 L466 410',
    'M466 410 L469 421 Q472 428 462 429.3 L313.8 448.8 L170.8 467.4',
@@ -90,10 +91,10 @@ const ROUTE_MODEL={
   if(index===5){
    cue.title='Entre à direita na Diadema';cue.action='Com o caminho livre, avance e vire à direita. Depois de alinhar, desligue a seta.';
    if((!stopped||phase==='signal')&&fraction<.38)on('right');
-   if(stopped){cue.title='Pare no portão de saída';cue.action=phase==='stop'?'Pare completamente com o carro reto, antes de entrar na Rua Diadema.':'Com o carro parado e reto, dê seta à direita. Olhe os dois lados e só avance quando estiver livre.';}
+   if(stopped){cue.title='Pare no portão de saída';cue.action=phase==='stop'?'Pare completamente no portão, com o carro reto e ainda na calçada, antes da Rua Diadema.':'Ainda no portão, com o carro parado e reto, dê seta à direita. Olhe os dois lados e só avance quando estiver livre.';}
    else if(fraction>.72){on('left','← Esquerda antes da bifurcação');cue.title='Prepare a bifurcação';cue.action='Após concluir a saída à direita, dê seta à esquerda antes de chegar à bifurcação.';cue.gear='1ª; 2ª quando permitir';}
    if(fraction>=.38&&fraction<=.72){cue.title='Continue na Rua Diadema';cue.action='Depois de alinhar, desligue a seta. Passe para a 2ª quando o carro embalar e a velocidade permitir.';}
-   cue.stop=stopped?'PARE NO PORTÃO · OLHE OS DOIS LADOS':'';cue.stopActive=stopped;
+   cue.stop=stopped?'PARE NO PORTÃO · AINDA NA CALÇADA':'';cue.stopActive=stopped;
   }
   if(index===6){
    if(fraction<.1){on('left','← Esquerda na bifurcação');cue.action='Siga pelo ramo da esquerda. Depois de alinhar, desligue a seta.';}

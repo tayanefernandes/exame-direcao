@@ -18,6 +18,33 @@ const parkingTarget={stripeX:622,carScale:.7,rightWheelX:16.5};
 function parkingPoint(x,y,u){const progress=clamp(u,0,1),ease=progress*progress*(3-2*progress);const finalX=PATHS[place].at(-1)[0];const targetX=parkingTarget.stripeX-parkingTarget.rightWheelX*parkingTarget.carScale;return [x+(targetX-finalX)*ease,y];}
 const at=(u)=>{const path=PATHS[place],i=clamp(u,0,1)*(path.length-1),j=Math.floor(i),a=path[j],b=path[Math.min(j+1,path.length-1)],d=i-j;return parkingPoint(a[0]+(b[0]-a[0])*d,a[1]+(b[1]-a[1])*d,u);};
 function heading(u){const [ax,ay]=at(u-.016),[bx,by]=at(u+.016);return Math.atan2(bx-ax,ay-by);}
+// Demonstra o acionamento e um desarme durante a correção do volante.
+function patioSignalAt(progress,alignment){
+ const cancelledAt=.14+.68*alignment,gestureDuration=.045;
+ if(progress>=.82)return {signal:'none',gesture:'finished',pull:0,rearming:false};
+ let elapsed=progress,rearming=false;
+ if(progress>=cancelledAt&&progress<cancelledAt+gestureDuration){elapsed=progress-cancelledAt;rearming=true;}
+ else if(progress>=.035)return {signal:'right',gesture:'hold',pull:1,rearming:false};
+ const wait=rearming?.012:0,duration=rearming?gestureDuration-wait:.035;
+ if(elapsed<wait)return {signal:'none',gesture:'cancelled',pull:0,rearming:true};
+ const fraction=clamp((elapsed-wait)/duration,0,1),pull=fraction*fraction*(3-2*fraction);
+ return {signal:pull>=.55?'right':'none',gesture:'activate',pull,rearming};
+}
+function updatePatioSignal(){
+ const signal=patioSignalAt(t,options[place].align),complete=signal.gesture==='finished';
+ $('driver-controls').dataset.signal=signal.signal;$('driver-controls').dataset.gesture=signal.gesture;
+ $('turn-stalk').setAttribute('transform',`rotate(${signal.pull*18} 31 50)`);
+ $('signal-hand').setAttribute('transform',`translate(0 ${-signal.pull*15})`);
+ $('sim-signal-banner').dataset.direction=signal.signal;
+ $('sim-signal-banner').dataset.prompt=String(!complete&&signal.gesture!=='hold');
+ $('sim-signal-icon').textContent=signal.signal==='right'?'→':complete?'✓':'↑';
+ $('sim-signal-label').textContent=complete?'SETA DESLIGADA':signal.gesture==='cancelled'?'A SETA DESARMOU':signal.rearming?'LIGUE A SETA NOVAMENTE':signal.signal==='right'?'SETA À DIREITA LIGADA':'DÊ SETA À DIREITA';
+ const note=complete?'Manobra concluída · seta desligada':signal.gesture==='cancelled'?'Seta desarmou · acione de novo':signal.gesture==='activate'?(signal.rearming?'↑ Suba a alavanca novamente':'↑ Suba para ligar a seta direita'):'Seta direita ligada';
+ $('stalk-note').textContent=note;
+ $('sim-signal').textContent=signal.gesture==='activate'?'Mão esquerda: alavanca para cima ↑':signal.gesture==='cancelled'?'Ao continuar encostando, sinalize novamente.':complete?'Parada concluída.':'Mantenha durante a aproximação.';
+ $('driver-controls').setAttribute('aria-label',`Volante FIAT e alavanca da seta. ${note}.`);
+ $('lamp').style.opacity=signal.signal==='none'?'0':playing&&Math.floor(t*60)%2===0?'.25':'1';
+}
 function update(){
   const u=clamp((t-.14)/.68,0,1),[x,y]=at(u);
   const a=heading(u),h1=heading(u-.045),h2=heading(u+.045),p1=at(u-.045),p2=at(u+.045);
@@ -29,17 +56,13 @@ function update(){
   $('tireR').setAttribute('transform',`rotate(${steer} 16.5 -18)`);
   $('wheel').setAttribute('transform',`rotate(${steer*14} 50 50)`);
   $('wheel-note').textContent=Math.abs(steer)<1?'Centrado':steer>0?'Virando à direita':'Corrigindo à esquerda';
-  $('lamp').style.opacity=t>=.82?'0':playing&&Math.floor(t*60)%2===0?'.25':'1';
   const phase=t<.14?0:t>=.82?3:u<options[place].align?1:2;
   if(phase!==activePhase){
-    activePhase=phase;const [title,detail,signal]=phases[phase];
+    activePhase=phase;const [title,detail]=phases[phase];
     $('phase-number').textContent=`PASSO ${phase+1} DE 4`;
     $('phase-title').textContent=title;$('phase-detail').textContent=detail;
-    $('sim-signal').textContent=signal;
-    $('sim-signal-banner').dataset.direction=phase===3?'none':'right';
-    $('sim-signal-icon').textContent=phase===3?'✓':'→';
-    $('sim-signal-label').textContent=phase===3?'SETA DESLIGADA':'DÊ SETA À DIREITA';
   }
+  updatePatioSignal();
   $('progress').value=Math.round(t*1000);
   $('progress').style.setProperty('--progress',`${t*100}%`);
 }
@@ -100,12 +123,13 @@ function positionRouteCar(){
  $('signal-banner').dataset.direction=cue.signal;
  setText('signal-icon',cue.signal==='left'?'←':cue.signal==='right'?'→':'✓');
  setText('signal-label',cue.signal==='none'?'SETA DESLIGADA':cue.signal==='left'?'DÊ SETA À ESQUERDA':'DÊ SETA À DIREITA');
- setText('signal-detail',cue.signalText.replace(/^[←→]\s*/,''));
+ setText('signal-detail',cue.signalText.replace(/^[←→]\s*/,''));$('signal-banner').setAttribute('title',cue.signalText.replace(/^[←→]\s*/,''));
  $('route-car').setAttribute('aria-label',`Carrinho: ${cue.title}. ${cue.signalText}.`);
  setText('map-location',index===3&&!state.stopped?`${cue.title}: opção ${options[place].number}`:cue.title);
  setText('map-action',cue.action);setText('map-signal',cue.signalText);setText('map-gear',cue.gear);
  $('route-car').dataset.gear=String(cue.gearNumber);
  $('gear-banner').dataset.change=cue.gearChange;
+ $('gear-banner').setAttribute('title',cue.gearHint);$('gear-banner').setAttribute('aria-label',`${cue.gearLabel}. ${cue.gearHint}`);
  setText('gear-number',typeof cue.gearNumber==='number'?`${cue.gearNumber}ª`:cue.gearNumber);setText('gear-label',cue.gearLabel);setText('gear-hint',cue.gearHint);
  setText('map-stop',cue.stop);$('map-stop').hidden=!cue.stop;$('map-stop').classList.toggle('waiting',cue.stopActive);
  const completed=routeLengths.slice(0,index).reduce((a,b)=>a+b,0)+distance;
@@ -178,7 +202,7 @@ function updateMapCamera(point=mapPoint){
  const base={x:-15,y:5,width:625,height:505};
  const width=base.width/mapZoom,height=base.height/mapZoom;
  const x=mapZoom===1?base.x:point.x-width/2;
- const y=mapZoom===1?base.y:point.y-height*(compactMap.matches ? .68 : .57);
+ const y=mapZoom===1?base.y:point.y-height*(compactMap.matches ? .52 : .43);
  $('street-map').setAttribute('viewBox',`${x} ${y} ${width} ${height}`);
  setText('map-zoom-level',`${Math.round(mapZoom*100)}%`);
  $('map-zoom-out').disabled=mapZoom<=1;$('map-zoom-in').disabled=mapZoom>=2.4;
