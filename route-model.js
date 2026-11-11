@@ -24,8 +24,8 @@ const ROUTE_MODEL={
    'M130 188 L129 204 Q129 213 120 213 L108 213',
    `M108 213 Q102 213 102 204 L102 ${y+22}`,
    `M102 ${y+22} Q103 ${y+13} 109 ${y+8} Q112 ${y+5} 112 ${y}`,
-   `M112 ${y} Q112 ${y-8} 106 ${y-14} Q102 ${y-20} 102 ${y-27} L102 82 Q103 71 101.6 59.2`,
-   'M101.6 59.2 Q106 63 110.8 69.3 L123 85',
+   `M112 ${y} Q112 ${y-8} 106 ${y-14} Q102 ${y-20} 102 ${y-27} L102 82 L102 59.2`,
+   'M102 59.2 L102 56 Q102 48 109 55 Q113 61 116 70 L123 85',
    'M123 85 L133.6 98.7 Q137 109 140.2 114.9 L148 123 Q153 129 158 132 L176 149 L207 176 L230 197 Q239 205 242 209 L280.2 231.1 L322.2 251.6 L368.6 270.4 L406.4 280.6',
    'M406.4 280.6 L438 287 Q449 289 450 300.2 L458 354.2 L466 410',
    'M466 410 L469 421 Q472 428 462 429.3 L313.8 448.8 L170.8 467.4',
@@ -43,7 +43,7 @@ const ROUTE_MODEL={
    const progress=i/(points.length-1);let offset=0;
    if(index<=1||index>=5)offset=4;
    if(index===1)offset*=Math.min(1,(1-progress)/.3);
-   if(index===5)offset*=Math.min(1,progress/.25);
+   if(index===5){const ramp=Math.max(0,Math.min(1,(progress-.4)/.45));offset*=ramp*ramp*(3-2*ramp);}
    return {x:point.x-dy/length*offset,y:point.y+dx/length*offset};
   }));
  },
@@ -51,7 +51,7 @@ const ROUTE_MODEL={
  timing(index,elapsed,length){
   if(index===0){const total=6500;return {fraction:Math.min(1,Math.max(0,(elapsed-1800)/(total-1800))),total,stopped:elapsed<1800};}
   if(index===3){const total=7000;return {fraction:Math.min(1,elapsed/4300),total,stopped:elapsed>=4300};}
-  if(index===5){const total=9000;return {fraction:Math.min(1,Math.max(0,(elapsed-4000)/5000)),total,stopped:elapsed<4000};}
+  if(index===5){const total=9000;return {fraction:Math.min(1,Math.max(0,(elapsed-4000)/5000)),total,stopped:elapsed<4000,phase:elapsed<1100?'stop':elapsed<4000?'signal':'resume'};}
   if(index===8){const total=15000,stopFraction=11/length;let fraction;
    if(elapsed<1000)fraction=stopFraction*elapsed/1000;
    else if(elapsed<4000)fraction=stopFraction;
@@ -86,9 +86,11 @@ const ROUTE_MODEL={
   if(index===1){if(fraction<.65)on('right');else if(fraction>.88)on('right','→ Direita antes do portão');}
   if(index===2){if(fraction<.3)on('right');else if(fraction>.74)on('right','→ Direita antes de encostar');}
   if(index===3&&!stopped)on('right','→ Direita para encostar');
-  if(index===4){if(fraction<.35)on('left','← Esquerda para sair da vaga');else if(fraction>.85)on('right','→ Direita para sair do portão');}
+  if(index===4){if(fraction<.35)on('left','← Esquerda para sair da vaga');if(fraction>.85){cue.title='Aproxime-se do portão';cue.action='Mantenha o carro reto e pare completamente no portão antes de sinalizar e virar à direita.';}}
   if(index===5){
-   if(fraction<.38)on('right');
+   cue.title='Entre à direita na Diadema';cue.action='Com o caminho livre, avance e vire à direita. Depois de alinhar, desligue a seta.';
+   if((!stopped||phase==='signal')&&fraction<.38)on('right');
+   if(stopped){cue.title='Pare no portão de saída';cue.action=phase==='stop'?'Pare completamente com o carro reto, antes de entrar na Rua Diadema.':'Com o carro parado e reto, dê seta à direita. Olhe os dois lados e só avance quando estiver livre.';}
    else if(fraction>.72){on('left','← Esquerda antes da bifurcação');cue.title='Prepare a bifurcação';cue.action='Após concluir a saída à direita, dê seta à esquerda antes de chegar à bifurcação.';cue.gear='1ª; 2ª quando permitir';}
    if(fraction>=.38&&fraction<=.72){cue.title='Continue na Rua Diadema';cue.action='Depois de alinhar, desligue a seta. Passe para a 2ª quando o carro embalar e a velocidade permitir.';}
    cue.stop=stopped?'PARE NO PORTÃO · OLHE OS DOIS LADOS':'';cue.stopActive=stopped;

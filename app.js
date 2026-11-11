@@ -38,6 +38,7 @@ function update(){
     $('sim-signal-label').textContent=phase===3?'SETA DESLIGADA':'DÊ SETA À DIREITA';
   }
   $('progress').value=Math.round(t*1000);
+  $('progress').style.setProperty('--progress',`${t*100}%`);
 }
 function stop(){playing=false;last=null;cancelAnimationFrame(frame);$('play').textContent=t>=1?'↻ Repetir':'▶ Reproduzir';}
 function tick(now){if(!playing)return;if(last!==null)t=Math.min(1,t+(now-last)/38000);last=now;update();if(t>=1)stop();else frame=requestAnimationFrame(tick);}
@@ -46,6 +47,8 @@ function configure(){
   $('place-count').textContent=`OPÇÃO ${o.number}`;$('place-name').textContent=o.title;$('place-detail').textContent=o.detail;
   $('route-path').setAttribute('d',PATHS[place].map(([x,y],i)=>`${i?'L':'M'} ${x} ${y}`).join(' '));
   $('guide').setAttribute('d',o.guide);
+  const parkingY=PATHS[place].at(-1)[1];
+  $('parking-marking').setAttribute('d',`M622 ${parkingY-44} V${parkingY+28}`);
   $('map-labels').replaceChildren(...o.labels.map(([x,y,label])=>{const n=document.createElementNS('http://www.w3.org/2000/svg','text');n.setAttribute('x',x);n.setAttribute('y',y);n.textContent=label;return n;}));
   document.querySelectorAll('.option').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.place===place)));
   document.querySelectorAll('.view').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===view)));
@@ -81,7 +84,7 @@ function positionRouteCar(){
  prepareMapPaths();
  const state=timing(),distance=routeLengths[index]*state.fraction,path=routeSegments[index];
  const point=path.getPointAtLength(distance),before=path.getPointAtLength(Math.max(0,distance-.8)),after=path.getPointAtLength(Math.min(routeLengths[index],distance+.8));
- const angle=Math.atan2(after.y-before.y,after.x-before.x)*180/Math.PI+90;
+ const angle=index===5&&state.stopped?0:Math.atan2(after.y-before.y,after.x-before.x)*180/Math.PI+90;
  $('route-car').setAttribute('transform',`translate(${point.x} ${point.y}) rotate(${angle}) scale(.34)`);
  const cue=ROUTE_MODEL.cue(index,state.fraction,state.stopped,state.phase);
  const underRoof=ROUTE_MODEL.underCanopy(point);
@@ -105,6 +108,7 @@ function positionRouteCar(){
  const completed=routeLengths.slice(0,index).reduce((a,b)=>a+b,0)+distance;
  $('driven-route').style.strokeDasharray=`${completed} ${routeTotalLength+1}`;
  $('route-progress').value=Math.round((index+Math.min(1,routeElapsed/state.total))/routeSteps.length*1000);
+ $('route-progress').style.setProperty('--progress',`${$('route-progress').value/10}%`);
  $('route-progress').setAttribute('aria-valuetext',`Etapa ${index+1} de ${routeSteps.length}: ${cue.title}`);
  setText('route-position',`${index+1} / ${routeSteps.length}`);
 }
@@ -171,7 +175,7 @@ function updateMapCamera(point=mapPoint){
  const base={x:-15,y:5,width:625,height:505};
  const width=base.width/mapZoom,height=base.height/mapZoom;
  const x=mapZoom===1?base.x:point.x-width/2;
- const y=mapZoom===1?base.y:point.y-height/2;
+ const y=mapZoom===1?base.y:point.y-height*.34;
  $('street-map').setAttribute('viewBox',`${x} ${y} ${width} ${height}`);
  setText('map-zoom-level',`${Math.round(mapZoom*100)}%`);
  $('map-zoom-out').disabled=mapZoom<=1;$('map-zoom-in').disabled=mapZoom>=2.4;
