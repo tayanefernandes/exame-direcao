@@ -124,7 +124,6 @@ function positionRouteCar(){
  $('route-car').dataset.underRoof=String(underRoof);
  $('canopy-status').hidden=!underRoof;
  $('campus-canopy').classList.toggle('car-under',underRoof);
- updateMapCamera(point);
  $('route-car').dataset.signal=cue.signal;
  $('route-car').dataset.stopped=String(state.stopped);
  $('signal-banner').dataset.direction=cue.signal;
@@ -139,6 +138,7 @@ function positionRouteCar(){
  $('gear-banner').setAttribute('title',cue.gearHint);$('gear-banner').setAttribute('aria-label',`${cue.gearLabel}. ${cue.gearHint}`);
  setText('gear-number',typeof cue.gearNumber==='number'?`${cue.gearNumber}ª`:cue.gearNumber);setText('gear-label',cue.gearLabel);setText('gear-hint',cue.gearHint);
  setText('map-stop',cue.stop);$('map-stop').hidden=!cue.stop;$('map-stop').classList.toggle('waiting',cue.stopActive);
+ updateMapCamera(point);
  const completed=routeLengths.slice(0,index).reduce((a,b)=>a+b,0)+distance;
  $('driven-route').style.strokeDasharray=`${completed} ${routeTotalLength+1}`;
  $('route-progress').value=Math.round((index+Math.min(1,routeElapsed/state.total))/routeSteps.length*1000);
@@ -204,6 +204,19 @@ document.querySelectorAll('[data-route-steps]').forEach(marker=>{
 document.addEventListener('visibilitychange',()=>{if(document.hidden){pauseRoute();stop();}});
 let mapZoom=1.35,mapPoint={x:131,y:170};
 const compactMap=window.matchMedia('(max-width:850px)');
+function positionCarCues(point=mapPoint){
+ const svg=$('street-map'),wrap=svg.parentElement,bubble=$('car-cues'),matrix=svg.getScreenCTM();
+ if(!matrix)return;
+ const box=wrap.getBoundingClientRect(),x=matrix.a*point.x+matrix.c*point.y+matrix.e-box.left;
+ const width=bubble.offsetWidth,height=bubble.offsetHeight,margin=10,gap=10,car=$('route-car').getBoundingClientRect();
+ const left=Math.max(margin,Math.min(box.width-width-margin,x-width/2));
+ const header=wrap.querySelector('.map-focus').getBoundingClientRect().bottom-box.top;
+ const above=car.top-box.top-gap-height,below=above<header+8;
+ const top=Math.max(margin,Math.min(box.height-height-margin,below?car.bottom-box.top+gap:above));
+ bubble.style.transform=`translate(${left}px,${top}px)`;
+ bubble.style.setProperty('--tail-x',`${Math.max(14,Math.min(width-14,x-left))}px`);
+ bubble.dataset.placement=below?'below':'above';
+}
 function updateMapCamera(point=mapPoint){
  mapPoint=point;
  const base={x:-15,y:5,width:625,height:505};
@@ -214,11 +227,13 @@ function updateMapCamera(point=mapPoint){
  setText('map-zoom-level',`${Math.round(mapZoom*100)}%`);
  $('map-zoom-out').disabled=mapZoom<=1;$('map-zoom-in').disabled=mapZoom>=2.4;
  setText('map-zoom-note',mapZoom>1?'O zoom acompanha o carrinho':'Visão geral ampliada');
+ positionCarCues(point);
 }
 $('map-zoom-in').onclick=()=>{mapZoom=Math.min(2.4,Math.round((mapZoom+.35)*100)/100);updateMapCamera();};
 $('map-zoom-out').onclick=()=>{mapZoom=Math.max(1,Math.round((mapZoom-.35)*100)/100);updateMapCamera();};
 $('map-zoom-reset').onclick=()=>{mapZoom=1;updateMapCamera();};
 compactMap.addEventListener('change',()=>updateMapCamera());
+new ResizeObserver(()=>positionCarCues()).observe($('street-map').parentElement);
 const parkedLayer=$('parked-cars');
 ROUTE_MODEL.parkedCars.forEach((car,i)=>{
  const node=document.createElementNS('http://www.w3.org/2000/svg','g');

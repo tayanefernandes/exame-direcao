@@ -8,6 +8,7 @@ Site de estudo do percurso da prova prática de direção em Sorocaba.
 - Tela cheia no pátio e no percurso, com controles e instrução atual sobre o mapa. Preserva o progresso, usa tela cheia quando disponível e permite sair pelo botão ou Esc.
 - Referências de observação sincronizadas com a manobra: entorno, frente, laterais, retrovisores e ponto cego. Na vista interna, o retrovisor direito recebe destaque durante o alinhamento e a conferência final.
 - Percurso com etapas selecionáveis e instruções de seta e marcha.
+- Aviso compacto de seta e marcha acompanha o carrinho, mantendo tamanho legível em qualquer zoom e reposicionando junto às bordas e às instruções do topo.
 - Parada no portão (ponto 6), seta à direita na saída e seta à esquerda antes da bifurcação.
 - Setas com antecedência, desligamento após as manobras e paradas no portão e na placa PARE da Cabreúva.
 
