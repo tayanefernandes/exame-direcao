@@ -11,6 +11,8 @@ Site de estudo do percurso da prova prática de direção em Sorocaba.
 
 O percurso e os movimentos do volante são ilustrativos. Confira as condições do local e as orientações do instrutor.
 
+- Zoom para acompanhar o carro, passagem sob o telhado, desvio na Diadema e avisos de troca entre 1ª e 2ª.
+
 ## Executar localmente
 
 Site estático em HTML, CSS e JavaScript, sem instalação ou build. Na pasta do projeto:

@@ -1,14 +1,14 @@
 'use strict';
 const $ = id => document.getElementById(id);
 const options = {
-  far: {number:2, title:'Depois do prédio menor', detail:'Chegada mais pela esquerda, como você descreveu.', frame:'350 570 455 555', guide:'M 636 680 Q 622 720 624 762 L 624 940', labels:[[513,626,'Saída · R. Diadema'],[463,1080,'Prédio menor']], align:.38},
-  near: {number:1, title:'Antes do prédio menor', detail:'Aproximação curta na primeira área da guia.', frame:'350 1170 455 630', guide:'M 650 1330 Q 620 1370 624 1420 L 624 1605', labels:[[460,1230,'Prédio menor'],[440,1752,'Portão · R. Cerquilho']], align:.5}
+  far: {number:2, title:'Depois do telhado quadrado', detail:'Opção 2: encoste depois de passar sob o telhado.', frame:'350 570 455 555', guide:'M 636 680 Q 622 720 624 762 L 624 940', labels:[[513,626,'Saída · R. Diadema'],[463,1080,'Telhado quadrado']], align:.38},
+  near: {number:1, title:'Antes do telhado quadrado', detail:'Opção 1: encoste antes do telhado. Ao sair da vaga, siga por baixo dele.', frame:'350 1170 455 630', guide:'M 650 1330 Q 620 1370 624 1420 L 624 1605', labels:[[460,1230,'Telhado quadrado'],[440,1752,'Portão · R. Cerquilho']], align:.5}
 };
 const phases = [
-  ['Prepare a aproximação','Observe os retrovisores e o entorno. Sinalize à direita antes de se aproximar.','→ Direita','Baixa velocidade'],
-  ['Aproxime da guia','Avance devagar em direção à guia, deixando espaço para alinhar o carro.','→ Direita','1ª se bem devagar'],
-  ['Alinhe as rodas','Corrija à esquerda para ficar paralela. Se a seta desarmar e você ainda estiver encostando, sinalize à direita novamente.','→ Direita','Controle em baixa'],
-  ['Confira a parada','Pare paralela e confira a distância da guia. Siga a orientação do examinador para finalizar.','Manobra concluída','Carro parado']
+  ['Prepare a aproximação','Observe os retrovisores e o entorno. Sinalize à direita antes de se aproximar.','→ Direita','1ª marcha'],
+  ['Aproxime da guia','Avance devagar em direção à guia, deixando espaço para alinhar o carro.','→ Direita','1ª marcha'],
+  ['Alinhe as rodas','Corrija à esquerda para ficar paralela. Se a seta desarmar e você ainda estiver encostando, sinalize à direita novamente.','→ Direita','1ª marcha'],
+  ['Confira a parada','Pare paralela e confira a distância da guia. Siga a orientação do examinador para finalizar.','Seta desligada','1ª · carro parado']
 ];
 let place='far',view='draw',t=0,playing=false,last=null,frame=0,activePhase=-1;
 $('base').innerHTML=BASE;
@@ -79,13 +79,25 @@ function positionRouteCar(){
  const state=timing(),distance=routeLengths[index]*state.fraction,path=routeSegments[index];
  const point=path.getPointAtLength(distance),before=path.getPointAtLength(Math.max(0,distance-.8)),after=path.getPointAtLength(Math.min(routeLengths[index],distance+.8));
  const angle=Math.atan2(after.y-before.y,after.x-before.x)*180/Math.PI+90;
- $('route-car').setAttribute('transform',`translate(${point.x} ${point.y}) rotate(${angle}) scale(.55)`);
+ $('route-car').setAttribute('transform',`translate(${point.x} ${point.y}) rotate(${angle}) scale(.34)`);
  const cue=ROUTE_MODEL.cue(index,state.fraction,state.stopped);
+ const underRoof=ROUTE_MODEL.underCanopy(point);
+ $('route-car').dataset.underRoof=String(underRoof);
+ $('canopy-status').hidden=!underRoof;
+ $('campus-canopy').classList.toggle('car-under',underRoof);
+ updateMapCamera(point);
  $('route-car').dataset.signal=cue.signal;
  $('route-car').dataset.stopped=String(state.stopped);
+ $('signal-banner').dataset.direction=cue.signal;
+ setText('signal-icon',cue.signal==='left'?'←':cue.signal==='right'?'→':'✓');
+ setText('signal-label',cue.signal==='none'?'SETA DESLIGADA':cue.signal==='left'?'DÊ SETA À ESQUERDA':'DÊ SETA À DIREITA');
+ setText('signal-detail',cue.signalText.replace(/^[←→]\s*/,''));
  $('route-car').setAttribute('aria-label',`Carrinho: ${cue.title}. ${cue.signalText}.`);
  setText('map-location',index===3&&!state.stopped?`${cue.title}: opção ${options[place].number}`:cue.title);
  setText('map-action',cue.action);setText('map-signal',cue.signalText);setText('map-gear',cue.gear);
+ $('route-car').dataset.gear=String(cue.gearNumber);
+ $('gear-banner').dataset.change=cue.gearChange;
+ setText('gear-number',`${cue.gearNumber}ª`);setText('gear-label',cue.gearLabel);setText('gear-hint',cue.gearHint);
  setText('map-stop',cue.stop);$('map-stop').hidden=!cue.stop;$('map-stop').classList.toggle('waiting',cue.stopActive);
  const completed=routeLengths.slice(0,index).reduce((a,b)=>a+b,0)+distance;
  $('driven-route').style.strokeDasharray=`${completed} ${routeTotalLength+1}`;
@@ -149,6 +161,29 @@ document.querySelectorAll('[data-route-steps]').forEach(marker=>{
  marker.addEventListener('click',select);marker.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select();}});
 });
 document.addEventListener('visibilitychange',()=>{if(document.hidden){pauseRoute();stop();}});
-const compactMap=window.matchMedia('(max-width:720px)');
-function resizeRouteMap(){$('street-map').setAttribute('viewBox',compactMap.matches?'-25 -20 620 550':'-20 -20 850 550');}
-compactMap.addEventListener('change',resizeRouteMap);resizeRouteMap();renderRoute();
+let mapZoom=1.35,mapPoint={x:131,y:170};
+const compactMap=window.matchMedia('(max-width:850px)');
+function updateMapCamera(point=mapPoint){
+ mapPoint=point;
+ const base={x:-15,y:5,width:625,height:505};
+ const width=base.width/mapZoom,height=base.height/mapZoom;
+ const x=mapZoom===1?base.x:clamp(point.x-width/2,base.x,base.x+base.width-width);
+ const y=mapZoom===1?base.y:clamp(point.y-height/2,base.y,base.y+base.height-height);
+ $('street-map').setAttribute('viewBox',`${x} ${y} ${width} ${height}`);
+ setText('map-zoom-level',`${Math.round(mapZoom*100)}%`);
+ $('map-zoom-out').disabled=mapZoom<=1;$('map-zoom-in').disabled=mapZoom>=2.4;
+ setText('map-zoom-note',mapZoom>1?'O zoom acompanha o carrinho':'Visão geral ampliada');
+}
+$('map-zoom-in').onclick=()=>{mapZoom=Math.min(2.4,Math.round((mapZoom+.35)*100)/100);updateMapCamera();};
+$('map-zoom-out').onclick=()=>{mapZoom=Math.max(1,Math.round((mapZoom-.35)*100)/100);updateMapCamera();};
+$('map-zoom-reset').onclick=()=>{mapZoom=1;updateMapCamera();};
+compactMap.addEventListener('change',()=>updateMapCamera());
+const parkedLayer=$('parked-cars');
+ROUTE_MODEL.parkedCars.forEach((car,i)=>{
+ const node=document.createElementNS('http://www.w3.org/2000/svg','g');
+ node.setAttribute('transform',`translate(${car.x} ${car.y}) rotate(${car.angle}) scale(.34)`);
+ node.setAttribute('class',`parked-car parked-car-${i}`);
+ node.innerHTML='<rect x="-8" y="-15" width="16" height="30" rx="4"/><path d="M-5 -7H5L4 -2H-4ZM-4 7H4V11H-4Z"/>';
+ parkedLayer.append(node);
+});
+renderRoute();
