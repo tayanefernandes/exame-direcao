@@ -261,3 +261,31 @@ body.training-focus-open{overflow:hidden}.training-player.training-focused{posit
 @media(max-width:760px) and (min-width:641px){.hero-inner{grid-template-columns:1fr 1.07fr;gap:18px;min-height:530px}.intro h1{font-size:3.25rem}.intro .eyebrow{font-size:.43rem;letter-spacing:.1em}.intro p{font-size:.78rem}.intro-actions{gap:15px}.hero-preview-caption{font-size:.44rem}.hero-live{font-size:.42rem}.hero-preview-toggle{font-size:.52rem;padding:5px 7px}}
 @media(max-width:640px){.hero-inner{grid-template-columns:1fr;gap:0;padding-top:36px;padding-bottom:84px;min-height:0}.intro h1{font-size:clamp(2.6rem,11.5vw,4rem)}.hero-preview{max-width:430px;justify-self:center;margin:38px auto 0;align-self:auto}.hero-preview-top{padding-inline:6px;padding-bottom:4px}.hero-live{font-size:.48rem}.hero-preview-toggle{font-size:.57rem}.hero-map-stage{aspect-ratio:475 / 425}.hero-map{overflow:hidden}.hero-cue{width:187px;min-height:49px;padding:7px 8px;gap:7px;border-radius:10px}.hero-cue-arrow{flex-basis:27px;height:27px;font-size:1.25rem}.hero-cue strong{font-size:.62rem}.hero-cue>div>span{font-size:.5rem}.hero-cue-gear{font-size:.8rem;flex-basis:24px;padding-left:7px}.hero-preview-caption{padding:3px 6px 12px;font-size:.49rem}.hero-preview-caption b{font-size:.95rem}.hero-preview-caption>span:first-child>span{font-size:.44rem}.hero-preview-track{margin-inline:6px}.hero-bottom{bottom:28px}.hero-preview:before{inset:10% 0 0}}
 @media(prefers-reduced-motion:reduce){.hero-car-left,.hero-car-right{animation:none!important}}
+
+/* Estrada da capa: ilustração livre, com placas e paisagismo. */
+.hero-preview:before{inset:13% -2% 3%;border-color:#ffffff05;transform:rotate(-18deg)}
+.hero-map-stage{aspect-ratio:600 / 480;mask-image:none}
+.hero-park{fill:#20291c;stroke:#65724b28;stroke-width:1.2}
+.hero-park-ring{fill:none;stroke:#b6ba781a;stroke-width:2;stroke-linecap:round;stroke-dasharray:2 7}
+.hero-trees circle:nth-child(-n+3){fill:#101c13;stroke:#4d634544;stroke-width:1;filter:drop-shadow(3px 4px 3px #0004)}
+.hero-trees circle:nth-child(n+4){fill:#34432a;stroke:#62744b4d;stroke-width:.7}
+.hero-scenic-dots{fill:#b0aa5a4d}
+.hero-road-shadow{fill:none;stroke:#0005;stroke-width:59;transform:translate(5px,9px);stroke-linejoin:round}
+.hero-ribbon-curb{fill:none;stroke:#444c3b;stroke-width:52;stroke-linejoin:round}
+.hero-ribbon{fill:none;stroke:#272d28;stroke-width:47;stroke-linejoin:round}
+.hero-ribbon-dashes{fill:none;stroke:#c6cbb17a;stroke-width:1.15;stroke-dasharray:7 10;stroke-linecap:round}
+.hero-road-art #hero-route-base{stroke:#ffce264f;stroke-width:2}.hero-road-art #hero-route-progress{stroke:#ffce26;stroke-width:2.3;filter:drop-shadow(0 0 5px #ffce2660)}
+.hero-crosswalk path{stroke:#c3c8af;stroke-width:4;opacity:.6}
+.hero-stop-line{fill:none;stroke:#e2e1ca;stroke-width:2.4;stroke-linecap:round}
+.hero-sign-shadow{fill:#0004}.hero-sign-post{fill:none;stroke:#839284;stroke-width:3;stroke-linecap:round}
+.hero-road-sign{filter:drop-shadow(1px 3px 2px #0004)}
+.hero-sign-stop-edge{fill:#efe5d4;stroke:#ffffff33;stroke-width:.8}.hero-sign-stop-face{fill:#ba5540}.hero-sign-stop text{fill:#fff6e9;font:800 10px Arial,sans-serif;text-anchor:middle;letter-spacing:.7px}
+.hero-sign-speed-edge{fill:#bd5640;stroke:#f4e9d655;stroke-width:.7}.hero-sign-speed-face{fill:#f3e9d6}.hero-sign-speed text{fill:#282b25;text-anchor:middle;font:800 21px Arial,sans-serif;letter-spacing:-1px}
+.hero-sign-curve-edge{fill:#20251a;stroke:#ffcf4a55;stroke-width:.7}.hero-sign-curve-face{fill:#ffce36}.hero-sign-curve-arrow{fill:none;stroke:#2b2d1c;stroke-width:4;stroke-linecap:square;stroke-linejoin:round}
+.hero-cones ellipse{fill:#0004}.hero-cones path:nth-child(2){fill:#cc8c33;stroke:#ffe5a255;stroke-width:.6}.hero-cones path:last-child{fill:none;stroke:#eee3c2;stroke-width:3}
+.hero-cue{width:199px;min-height:51px;transition:opacity .15s,visibility .15s}
+.hero-cue[data-visible=false]{opacity:0;visibility:hidden}.hero-cue[data-visible=true]{opacity:1;visibility:visible}
+.hero-cue[data-kind=stop]{border-color:#d9805b66}.hero-cue[data-kind=stop] .hero-cue-arrow{background:#bd5943;color:#fff5e6;font-size:.53rem;letter-spacing:.01em}.hero-cue[data-kind=stop] strong{color:#f5d4bc}
+.hero-preview-caption{padding-top:13px;border-top:1px solid #ffffff0b}.hero-preview-caption>.hero-art-motto{font-size:.48rem;letter-spacing:.14em;color:#c6b76e;font-weight:650}
+@media(max-width:640px){.hero-map-stage{aspect-ratio:600 / 480}.hero-cue{width:180px;min-height:47px}.hero-preview-caption{margin-inline:6px;padding-inline:0}.hero-preview-caption>.hero-art-motto{font-size:.43rem;letter-spacing:.11em}.hero-preview{margin-top:32px}}
+@media(prefers-reduced-motion:reduce){.hero-cue{transition:none}}

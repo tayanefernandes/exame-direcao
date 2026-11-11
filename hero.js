@@ -1,20 +1,29 @@
 'use strict';
 
-// A capa usa a mesma geometria e as mesmas orientações do percurso principal.
+// Animação decorativa da capa. O percurso de estudo fica no simulador.
 (()=>{
  const root=document.getElementById('hero-preview');if(!root)return;
- const byId=id=>document.getElementById(id),svg=byId('hero-map'),car=byId('hero-car'),cue=byId('hero-cue');
- const ns='http://www.w3.org/2000/svg';
- const segments=ROUTE_MODEL.rightLanePaths('far').map(points=>{
-  const path=document.createElementNS(ns,'path');path.setAttribute('d',points.map((p,i)=>`${i?'L':'M'}${p.x} ${p.y}`).join(' '));return path;
- });
- const lengths=segments.map(path=>path.getTotalLength()),total=lengths.reduce((a,b)=>a+b,0);
- const route=segments.map((path,i)=>i?path.getAttribute('d').replace(/^M/,'L'):path.getAttribute('d')).join(' ');
- byId('hero-route-base').setAttribute('d',route);byId('hero-route-progress').setAttribute('d',route);
- const names=['Rua Ribeirão Preto','Rua Cerquilho','Entrada do pátio','Estacionamento no pátio','Saída da vaga','Rua Diadema','Rua Diadema','Rua Sarapuí','Rua Cabreúva','Rua Ribeirão Preto','Final do percurso'];
+ const byId=id=>document.getElementById(id),svg=byId('hero-map'),car=byId('hero-car'),cue=byId('hero-cue'),road=byId('hero-road-center');
+ const ns='http://www.w3.org/2000/svg',roadLength=road.getTotalLength(),samples=[];
+ // A faixa de circulação acompanha a borda direita da estrada ilustrada.
+ for(let distance=0;distance<roadLength;distance+=2){
+  const p=road.getPointAtLength(distance),a=road.getPointAtLength((distance+roadLength-1)%roadLength),b=road.getPointAtLength((distance+1)%roadLength);
+  const dx=b.x-a.x,dy=b.y-a.y,length=Math.hypot(dx,dy)||1;
+  samples.push({x:p.x-dy/length*9,y:p.y+dx/length*9});
+ }
+ const path=document.createElementNS(ns,'path');path.setAttribute('d',samples.map((p,i)=>`${i?'L':'M'}${p.x} ${p.y}`).join(' ')+'Z');
+ const total=path.getTotalLength();byId('hero-route-base').setAttribute('d',path.getAttribute('d'));byId('hero-route-progress').setAttribute('d',path.getAttribute('d'));
+ let stopLineDistance=0,closest=Infinity;
+ for(let distance=0;distance<total;distance+=2){const p=path.getPointAtLength(distance),score=Math.hypot(p.x-135,p.y-300);if(score<closest){closest=score;stopLineDistance=distance;}}
+ const stopPoint=path.getPointAtLength(stopLineDistance),stopBefore=path.getPointAtLength(stopLineDistance-1),stopAfter=path.getPointAtLength(stopLineDistance+1);
+ const stopAngle=Math.atan2(stopAfter.y-stopBefore.y,stopAfter.x-stopBefore.x),nx=-Math.sin(stopAngle)*8,ny=Math.cos(stopAngle)*8;
+ byId('hero-stop-line').setAttribute('d',`M${stopPoint.x-nx} ${stopPoint.y-ny}L${stopPoint.x+nx} ${stopPoint.y+ny}`);
+ const speed=36,pauseAt=(stopLineDistance-18)/speed,pauseDuration=1.8,duration=total/speed+pauseDuration;
  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
- let step=0,elapsed=0,frame=0,last=null,inView=false,paused=reduced.matches,point={x:131,y:170};
+ let elapsed=0,frame=0,last=null,inView=false,paused=reduced.matches,point={x:145,y:420};
  const text=(id,value)=>{const n=byId(id);if(n.textContent!==value)n.textContent=value;};
+ const at=distance=>path.getPointAtLength((distance+total)%total);
+ const angleAt=distance=>{const a=at(distance-1),b=at(distance+1);return Math.atan2(b.y-a.y,b.x-a.x);};
  function positionCue(){
   const matrix=svg.getScreenCTM();if(!matrix)return;
   const box=svg.parentElement.getBoundingClientRect(),carBox=car.getBoundingClientRect(),width=cue.offsetWidth,height=cue.offsetHeight;
@@ -25,38 +34,30 @@
   cue.style.setProperty('--hero-tail',`${Math.max(16,Math.min(width-16,x-left))}px`);cue.dataset.placement=below?'below':'above';
  }
  function render(){
-  const state=ROUTE_MODEL.timing(step,elapsed,lengths[step]),distance=lengths[step]*state.fraction,path=segments[step];
-  point=path.getPointAtLength(distance);
-  const before=path.getPointAtLength(Math.max(0,distance-.8)),after=path.getPointAtLength(Math.min(lengths[step],distance+.8));
-  const angle=step===5&&state.stopped?0:Math.atan2(after.y-before.y,after.x-before.x)*180/Math.PI+90;
-  const instruction=ROUTE_MODEL.cue(step,state.fraction,state.stopped,state.phase);
-  car.setAttribute('transform',`translate(${point.x} ${point.y}) rotate(${angle}) scale(.68)`);
-  car.dataset.signal=instruction.signal;car.dataset.underRoof=String(ROUTE_MODEL.underCanopy(point));
-  cue.dataset.direction=instruction.signal;
-  text('hero-cue-arrow',instruction.signal==='left'?'←':instruction.signal==='right'?'→':'✓');
-  text('hero-cue-text',instruction.signal==='left'?'Seta à esquerda':instruction.signal==='right'?'Seta à direita':'Seta desligada');
-  text('hero-cue-street',names[step]);text('hero-cue-gear',typeof instruction.gearNumber==='number'?`${instruction.gearNumber}ª`:instruction.gearNumber);
-  text('hero-stage',String(step+1).padStart(2,'0'));
-  const completed=lengths.slice(0,step).reduce((a,b)=>a+b,0)+distance;
-  byId('hero-route-progress').style.strokeDasharray=`${completed} ${total+1}`;
-  byId('hero-preview-track').style.setProperty('--hero-progress',`${completed/total*100}%`);
+  const stopped=elapsed>=pauseAt&&elapsed<pauseAt+pauseDuration;
+  const distance=(elapsed>=pauseAt?elapsed-Math.min(pauseDuration,elapsed-pauseAt):elapsed)*speed;
+  point=at(distance);const angle=angleAt(distance);
+  let turn=angleAt(distance+34)-angleAt(distance+4);turn=Math.atan2(Math.sin(turn),Math.cos(turn));
+  const direction=stopped?'none':turn>.22?'right':turn<-.22?'left':'none';
+  car.setAttribute('transform',`translate(${point.x} ${point.y}) rotate(${angle*180/Math.PI+90}) scale(.78)`);car.dataset.signal=direction;
+  cue.dataset.direction=direction;cue.dataset.kind=stopped?'stop':'turn';cue.dataset.visible=String(stopped||direction!=='none');
+  text('hero-cue-arrow',stopped?'PARE':direction==='left'?'←':'→');
+  text('hero-cue-text',stopped?'Pare e observe':direction==='left'?'Seta à esquerda':'Seta à direita');
+  text('hero-cue-street',stopped?'Confira os dois lados':'Sinalize antes da curva');
+  byId('hero-route-progress').style.strokeDasharray=`${distance} ${total+1}`;
   positionCue();
  }
  function halt(){cancelAnimationFrame(frame);frame=0;last=null;root.dataset.playing='false';}
  function allowed(){return inView&&!document.hidden&&!paused;}
  function tick(now){
   if(!allowed()){halt();return;}
-  if(last!==null)elapsed+=Math.min(now-last,100)*2.4;
-  last=now;
-  const duration=ROUTE_MODEL.timing(step,elapsed,lengths[step]).total;
-  if(elapsed>=duration){elapsed=0;step=(step+1)%segments.length;}
-  render();frame=requestAnimationFrame(tick);
+  if(last!==null)elapsed=(elapsed+Math.min(now-last,1000)/1000)%duration;
+  last=now;render();frame=requestAnimationFrame(tick);
  }
  function reconcile(){
   const button=byId('hero-preview-toggle');
-  button.setAttribute('aria-label',paused?'Reproduzir prévia do percurso':'Pausar prévia do percurso');
-  button.setAttribute('aria-pressed',String(paused));text('hero-toggle-label',paused?'Reproduzir':'Pausar');
-  root.dataset.paused=String(paused);
+  button.setAttribute('aria-label',paused?'Reproduzir animação da capa':'Pausar animação da capa');
+  button.setAttribute('aria-pressed',String(paused));text('hero-toggle-label',paused?'Reproduzir':'Pausar');root.dataset.paused=String(paused);
   if(allowed()&&!frame){last=null;root.dataset.playing='true';frame=requestAnimationFrame(tick);}else if(!allowed())halt();
  }
  byId('hero-preview-toggle').addEventListener('click',()=>{paused=!paused;reconcile();});

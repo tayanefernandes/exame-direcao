@@ -4,7 +4,7 @@ Site de estudo do percurso da prova prática de direção em Sorocaba.
 
 ## Recursos
 
-- Capa com mapa vetorial animado, carrinho e seta/marcha sincronizados ao mesmo modelo do percurso. A prévia pode ser pausada, respeita a preferência por movimento reduzido e interrompe a animação fora da tela.
+- Capa com estrada vetorial estilizada, carrinho, placas de PARE, limite de velocidade e curva. A animação é decorativa, separada do percurso de estudo; pode ser pausada, respeita movimento reduzido e para fora da tela. O carrinho sinaliza nas curvas e faz uma pausa ilustrativa junto ao PARE.
 
 - Duas opções de estacionamento, volante animado e foto aérea do pátio.
 - Tela cheia no pátio e no percurso, com controles e instrução atual sobre o mapa. Preserva o progresso, usa tela cheia quando disponível e permite sair pelo botão ou Esc.
