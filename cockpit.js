@@ -92,7 +92,9 @@ class PatioCockpit {
   if(this.root.hidden||!this.state)return;
   const surface=this.fit(this.canvas);if(!surface)return;
   const {ctx,width,height}=surface,state=this.state,forward={x:Math.sin(state.angle),y:-Math.cos(state.angle)},right={x:Math.cos(state.angle),y:Math.sin(state.angle)};
-  const camera={x:state.x+forward.x*13-right.x*6,y:state.y+forward.y*13-right.y*6,angle:state.angle,eye:18,focal:width*.68,horizon:.3};
+  // Olhar à frente a partir do banco: campo mais fechado e menos chão visível.
+  // Câmera fixa em relação ao carro, sem abrir a visão durante a aproximação.
+  const camera={x:state.x+forward.x*13-right.x*6,y:state.y+forward.y*13-right.y*6,angle:state.angle,eye:16,focal:width*.84,horizon:.36};
   this.world(ctx,width,height,camera);
   const reflection=this.fit(this.mirror);
   if(reflection){const {ctx:mirrorCtx,width:mw,height:mh}=reflection;mirrorCtx.save();mirrorCtx.translate(mw,0);mirrorCtx.scale(-1,1);this.world(mirrorCtx,mw,mh,{x:state.x+right.x*12,y:state.y+right.y*12,angle:state.angle+Math.PI,eye:15,focal:mw*.65,horizon:.19},true);mirrorCtx.restore();mirrorCtx.fillStyle='#34414c';mirrorCtx.beginPath();mirrorCtx.moveTo(0,0);mirrorCtx.lineTo(mw*.15,mh*.15);mirrorCtx.lineTo(mw*.25,mh);mirrorCtx.lineTo(0,mh);mirrorCtx.closePath();mirrorCtx.fill();}
