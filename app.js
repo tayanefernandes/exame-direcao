@@ -64,6 +64,7 @@ function update(){
     $('phase-title').textContent=title;$('phase-detail').textContent=detail;
   }
   updatePatioSignal();
+  TRAINING.renderPatio(t,options[place].align,phase,x,y,(u===0||u===1)?0:a,phases[phase][0],phases[phase][1],$('driver-controls').dataset.signal);
   cockpit.render({x,y,angle:(u===0||u===1)?0:a,stripeY:PATHS[place].at(-1)[1],place,signal:$('driver-controls').dataset.signal,finished:t>=.82});
   $('progress').value=Math.round(t*1000);
   $('progress').style.setProperty('--progress',`${t*100}%`);
@@ -119,6 +120,7 @@ function positionRouteCar(){
  $('route-car').setAttribute('transform',`translate(${point.x} ${point.y}) rotate(${angle}) scale(.34)`);
  const cue=ROUTE_MODEL.cue(index,state.fraction,state.stopped,state.phase);
  const underRoof=ROUTE_MODEL.underCanopy(point);
+ TRAINING.renderRoute(index,state.fraction,state.stopped,point,angle,underRoof);
  $('route-car').dataset.underRoof=String(underRoof);
  $('canopy-status').hidden=!underRoof;
  $('campus-canopy').classList.toggle('car-under',underRoof);
