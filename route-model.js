@@ -6,16 +6,16 @@ const ROUTE_MODEL={
  underCanopy(point){const r=this.canopy;return point.x>=r.x&&point.x<=r.x+r.width&&point.y>=r.y&&point.y<=r.y+r.height;},
  steps:[
   {title:'Saia da parada',location:'Sair da parada na Rua Ribeirão Preto',action:'Confira o entorno e saia da lateral do Detran. Depois de alinhar, desligue a seta.',gear:'1ª para sair'},
-  {title:'Entre na Rua Cerquilho',location:'Direita na Rua Cerquilho',action:'Sinalize antes de virar à direita. Desligue após alinhar na Cerquilho.',gear:'1ª na curva; 2ª ao seguir'},
+  {title:'Entre na Rua Cerquilho',location:'Direita na Rua Cerquilho',action:'Sinalize antes de virar à direita. Desligue após alinhar na Cerquilho.',gear:'Mantenha a marcha enquanto segue; 1ª após parar'},
   {title:'Entre no portão do Detran',location:'Entrada do pátio pela Rua Cerquilho',action:'Entre à direita no corredor. Entre as vagas 1 e 2, o carro passa por baixo do telhado quadrado.',gear:'1ª, bem devagar'},
   {title:'Encoste no pátio',location:'Estacionamento no pátio',action:'Dê seta à direita antes de encostar. Alinhe o carro e desligue a seta ao concluir.',gear:'1ª; pare junto à guia'},
   {title:'Saia da vaga até o portão',location:'Saída da vaga pelo corredor do pátio',action:'Dê seta à esquerda para sair da vaga. Desligue após alinhar e siga pelo corredor até a saída.',gear:'1ª, bem devagar'},
   {title:'Pare no portão de saída',location:'Saída do pátio para a Rua Diadema',action:'Pare no portão indicado. Olhe os dois lados e entre à direita na Rua Diadema quando estiver livre.',gear:'1ª na saída; 2ª ao embalar'},
-  {title:'Bifurcação e carros estacionados',location:'Bifurcação e desvio na Rua Diadema',action:'Sinalize na bifurcação. Depois, confira o trânsito e sinalize para desviar dos carros estacionados à direita e retornar com segurança.',gear:'2ª ao seguir; 1ª antes da próxima curva'},
-  {title:'Vire na Rua Sarapuí',location:'Direita da Diadema para a Sarapuí',action:'Dê seta à direita antes da curva. Depois de alinhar na Sarapuí, desligue a seta.',gear:'1ª na curva; 2ª ao seguir'},
+  {title:'Bifurcação e carros estacionados',location:'Bifurcação e desvio na Rua Diadema',action:'Sinalize na bifurcação. Depois, confira o trânsito e sinalize para desviar dos carros estacionados à direita e retornar com segurança.',gear:'2ª enquanto segue'},
+  {title:'Vire na Rua Sarapuí',location:'Direita da Diadema para a Sarapuí',action:'Dê seta à direita antes da curva. Depois de alinhar na Sarapuí, desligue a seta.',gear:'Mantenha a marcha enquanto segue; 1ª após parar'},
   {title:'Pare e vire na Rua Cabreúva',location:'PARE da Sarapuí com a Cabreúva',action:'Sinalize à direita e pare na placa PARE. Confira o trânsito e vire quando estiver livre. Desligue ao alinhar.',gear:'1ª para retomar; 2ª depois de alinhar'},
-  {title:'Vire na Rua Ribeirão Preto',location:'Direita da Cabreúva para a Ribeirão Preto',action:'Dê seta antes de virar à direita. Neste ponto não há placa de PARE indicada na referência. Observe a preferência.',gear:'1ª na curva; 2ª ao seguir'},
-  {title:'Encoste para finalizar',location:'Estacionamento final na Rua Ribeirão Preto',action:'Dê seta à direita antes de encostar. Pare junto à guia e desligue a seta ao concluir.',gear:'1ª para encostar'}
+  {title:'Vire na Rua Ribeirão Preto',location:'Direita da Cabreúva para a Ribeirão Preto',action:'Dê seta antes de virar à direita. Neste ponto não há placa de PARE indicada na referência. Observe a preferência.',gear:'Mantenha a marcha enquanto segue; 1ª após parar'},
+  {title:'Encoste para finalizar',location:'Estacionamento final na Rua Ribeirão Preto',action:'Dê seta à direita antes de encostar. Pare junto à guia e desligue a seta ao concluir.',gear:'2ª na aproximação; 1ª somente depois de parar'}
  ],
  paths(place){
   const y=place==='near'?171:113;
@@ -26,7 +26,7 @@ const ROUTE_MODEL={
    `M102 ${y+22} Q103 ${y+13} 109 ${y+8} Q112 ${y+5} 112 ${y}`,
    `M112 ${y} Q112 ${y-8} 106 ${y-14} Q102 ${y-20} 102 ${y-27} L102 82 Q103 71 101.6 59.2`,
    'M101.6 59.2 Q106 63 110.8 69.3 L123 85',
-   'M123 85 L133.6 98.7 Q137 109 140.2 114.9 L148 123 Q154 130 162 127 L181 146 L212 173 L236 191 Q247 203 242 209 L280.2 231.1 L322.2 251.6 L368.6 270.4 L406.4 280.6',
+   'M123 85 L133.6 98.7 Q137 109 140.2 114.9 L148 123 Q153 129 158 132 L176 149 L207 176 L230 197 Q239 205 242 209 L280.2 231.1 L322.2 251.6 L368.6 270.4 L406.4 280.6',
    'M406.4 280.6 L438 287 Q449 289 450 300.2 L458 354.2 L466 410',
    'M466 410 L469 421 Q472 428 462 429.3 L313.8 448.8 L170.8 467.4',
    'M170.8 467.4 L156 469 Q149 471 144 459 L136.4 449.1 L126.4 422.9 L122.6 357.3 L126 285',
@@ -42,25 +42,27 @@ const ROUTE_MODEL={
    if(elapsed<1000)fraction=stopFraction*elapsed/1000;
    else if(elapsed<4000)fraction=stopFraction;
    else fraction=stopFraction+(1-stopFraction)*Math.min(1,(elapsed-4000)/(total-4000));
-   return {fraction,total,stopped:elapsed>=1000&&elapsed<4000};
+   return {fraction,total,stopped:elapsed>=1000&&elapsed<4000,phase:elapsed<1000?'approach':elapsed<4000?'stop':'resume'};
   }
   if(index===6){const total=22000;return {fraction:Math.min(1,elapsed/total),total,stopped:false};}
   if(index===10){const total=6500;return {fraction:Math.min(1,elapsed/4500),total,stopped:elapsed>=4500};}
   const total=Math.max(4500,Math.min(15000,length*42));return {fraction:Math.min(1,elapsed/total),total,stopped:false};
  },
- gearFor(index,fraction,stopped){
-  let number=1,change='hold';
+ gearFor(index,fraction,stopped,phase){
+  let number=index<=5?1:2,change='hold';
   if(index===5&&fraction>=.6){number=2;change='up';}
-  if(index===6){number=fraction<.86?2:1;if(fraction>=.86)change='down';}
-  if(index===7){if(fraction>=.5&&fraction<.78){number=2;change='up';}else if(fraction>=.78)change='down';}
-  if(index===8){if(fraction>=.2&&fraction<.86){number=2;change=fraction<.32?'up':'hold';}else if(fraction>=.86)change='down';}
-  if(index===9){if(fraction>=.3&&fraction<.78){number=2;change=fraction<.42?'up':'hold';}else if(fraction>=.78)change='down';}
-  if(stopped){number=1;change='hold';}
-  const label=change==='up'?'PASSE PARA A 2ª':change==='down'?'REDUZA PARA A 1ª':`MANTENHA A ${number}ª`;
-  const hint=stopped?(index===10?'Carro parado. Finalize conforme a orientação do examinador.':'Carro parado. Retome em 1ª quando puder seguir.'):change==='up'?'Depois de embalar e quando a velocidade permitir.':change==='down'?'Reduza a velocidade antes de engatar a 1ª.':number===1?'Baixa velocidade, com controle do carro.':'Siga com velocidade compatível com a via.';
+  if(index===8){
+   if(phase==='stop'||stopped){number=1;change='down';}
+   else if(phase==='resume'&&fraction<.2){number=1;}
+   else{number=2;if(phase==='resume'&&fraction<.32)change='up';}
+  }
+  if(index===10&&stopped){number=1;change='down';}
+  const label=change==='up'?'PASSE PARA A 2ª':change==='down'?'ENGATE A 1ª':`MANTENHA A ${number}ª`;
+  const hint=stopped?(index===10?'Carro parado. Finalize conforme a orientação do examinador.':'Com o carro parado, engate a 1ª para retomar.'):
+   change==='up'?'Depois de embalar e quando a velocidade permitir.':number===1?'Retome e avance com controle do carro.':'Reduza a velocidade quando necessário, mantendo a 2ª enquanto segue.';
   return {gearNumber:number,gearChange:change,gearLabel:label,gearHint:hint,gear:`${number}ª marcha`};
  },
- cue(index,fraction,stopped){
+ cue(index,fraction,stopped,phase){
   const step=this.steps[index];let cue={title:step.title,action:step.action,gear:step.gear,signal:'none',signalText:'Seta desligada',stop:'',stopActive:false};
   const on=(direction,text)=>{cue.signal=direction;cue.signalText=text||(direction==='left'?'← Esquerda':'→ Direita');};
   if(index===0){
@@ -83,12 +85,12 @@ const ROUTE_MODEL={
    else if(fraction<.19){on('left','← Esquerda para desviar');cue.title='Sinalize antes de desviar';cue.action='Confira retrovisores, ponto cego e o trânsito contrário. Com espaço seguro, sinalize à esquerda antes de desviar dos carros.';}
    else if(fraction<.39){cue.title='Passe pelos carros estacionados';cue.action='Depois de alinhar, desligue a seta. Mantenha distância lateral dos carros estacionados.';}
    else if(fraction<.53){on('right','→ Direita para retornar');cue.title='Sinalize antes de retornar';cue.action='Já passou pelos carros? Confira o retrovisor e sinalize à direita antes de retornar à posição na via.';}
-   else if(fraction>.78){on('right','→ Direita antes da Sarapuí');cue.title='Prepare a direita na Sarapuí';cue.action='Antes da curva para a Sarapuí, sinalize à direita e reduza.';}
+   else if(fraction>.78){on('right','→ Direita antes da Sarapuí');cue.title='Prepare a direita na Sarapuí';cue.action='Antes da curva para a Sarapuí, sinalize à direita e reduza a velocidade.';}
    else{cue.title='Continue pela Rua Diadema';cue.action='Desligue a seta depois de alinhar novamente. Siga observando o trânsito.';}
   }
   if(index===7){
    if(fraction<.42)on('right');
-   else if(fraction>.82){on('right','→ Direita antes da Cabreúva');cue.title='Prepare a curva e o PARE';cue.action='Sinalize à direita e reduza para a placa PARE na entrada da Cabreúva.';cue.gear='Prepare a parada completa';}
+   else if(fraction>.82){on('right','→ Direita antes da Cabreúva');cue.title='Prepare a curva e o PARE';cue.action='Sinalize à direita e reduza a velocidade para a placa PARE na entrada da Cabreúva.';cue.gear='Prepare a parada completa';}
   }
   if(index===8){
    if(fraction<.2)on('right');
@@ -100,6 +102,6 @@ const ROUTE_MODEL={
    else if(fraction>.78){on('right','→ Direita antes de estacionar');cue.title='Prepare o estacionamento final';cue.action='Sinalize à direita com antecedência, antes de se aproximar da guia.';cue.gear='Reduza para encostar';}
   }
   if(index===10){if(!stopped)on('right','→ Direita para encostar');else{cue.title='Percurso concluído';cue.action='Carro parado junto à guia. Seta desligada.';cue.gear='Carro parado';}}
-  return Object.assign(cue,this.gearFor(index,fraction,stopped));
+  return Object.assign(cue,this.gearFor(index,fraction,stopped,phase));
  }
 };

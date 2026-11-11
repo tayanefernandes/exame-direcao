@@ -5,10 +5,10 @@ const options = {
   near: {number:1, title:'Antes do telhado quadrado', detail:'Opção 1: encoste antes do telhado. Ao sair da vaga, siga por baixo dele.', frame:'350 1170 455 630', guide:'M 650 1330 Q 620 1370 624 1420 L 624 1605', labels:[[460,1230,'Telhado quadrado'],[440,1752,'Portão · R. Cerquilho']], align:.5}
 };
 const phases = [
-  ['Prepare a aproximação','Observe os retrovisores e o entorno. Sinalize à direita antes de se aproximar.','→ Direita','1ª marcha'],
-  ['Aproxime da guia','Avance devagar em direção à guia, deixando espaço para alinhar o carro.','→ Direita','1ª marcha'],
-  ['Alinhe as rodas','Corrija à esquerda para ficar paralela. Se a seta desarmar e você ainda estiver encostando, sinalize à direita novamente.','→ Direita','1ª marcha'],
-  ['Confira a parada','Pare paralela e confira a distância da guia. Siga a orientação do examinador para finalizar.','Seta desligada','1ª · carro parado']
+  ['Prepare a aproximação','Observe os retrovisores e o entorno. Sinalize à direita antes de se aproximar.','→ Direita'],
+  ['Aproxime da guia','Avance devagar em direção à guia, deixando espaço para alinhar o carro.','→ Direita'],
+  ['Alinhe as rodas','Corrija à esquerda para ficar paralela. Se a seta desarmar e você ainda estiver encostando, sinalize à direita novamente.','→ Direita'],
+  ['Confira a parada','Pare paralela e confira a distância da guia. Siga a orientação do examinador para finalizar.','Seta desligada']
 ];
 let place='far',view='draw',t=0,playing=false,last=null,frame=0,activePhase=-1;
 $('base').innerHTML=BASE;
@@ -29,10 +29,13 @@ function update(){
   $('lamp').style.opacity=t>=.82?'0':playing&&Math.floor(t*60)%2===0?'.25':'1';
   const phase=t<.14?0:t>=.82?3:u<options[place].align?1:2;
   if(phase!==activePhase){
-    activePhase=phase;const [title,detail,signal,gear]=phases[phase];
+    activePhase=phase;const [title,detail,signal]=phases[phase];
     $('phase-number').textContent=`PASSO ${phase+1} DE 4`;
     $('phase-title').textContent=title;$('phase-detail').textContent=detail;
-    $('sim-signal').textContent=signal;$('sim-gear').textContent=gear;
+    $('sim-signal').textContent=signal;
+    $('sim-signal-banner').dataset.direction=phase===3?'none':'right';
+    $('sim-signal-icon').textContent=phase===3?'✓':'→';
+    $('sim-signal-label').textContent=phase===3?'SETA DESLIGADA':'DÊ SETA À DIREITA';
   }
   $('progress').value=Math.round(t*1000);
 }
@@ -80,7 +83,7 @@ function positionRouteCar(){
  const point=path.getPointAtLength(distance),before=path.getPointAtLength(Math.max(0,distance-.8)),after=path.getPointAtLength(Math.min(routeLengths[index],distance+.8));
  const angle=Math.atan2(after.y-before.y,after.x-before.x)*180/Math.PI+90;
  $('route-car').setAttribute('transform',`translate(${point.x} ${point.y}) rotate(${angle}) scale(.34)`);
- const cue=ROUTE_MODEL.cue(index,state.fraction,state.stopped);
+ const cue=ROUTE_MODEL.cue(index,state.fraction,state.stopped,state.phase);
  const underRoof=ROUTE_MODEL.underCanopy(point);
  $('route-car').dataset.underRoof=String(underRoof);
  $('canopy-status').hidden=!underRoof;
