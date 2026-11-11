@@ -8,12 +8,15 @@ const phases = [
   ['Prepare a aproximação','Observe os retrovisores e o entorno. Sinalize à direita antes de se aproximar.','→ Direita'],
   ['Aproxime da guia','Avance devagar em direção à guia, deixando espaço para alinhar o carro.','→ Direita'],
   ['Alinhe as rodas','Corrija à esquerda para ficar paralela. Se a seta desarmar e você ainda estiver encostando, sinalize à direita novamente.','→ Direita'],
-  ['Confira a parada','Pare paralela e confira a distância da guia. Com o carro parado, coloque em ponto morto e puxe o freio de mão.','Seta desligada']
+  ['Confira a parada','Pare paralela à guia, com as rodas direitas sobre a faixa amarela. Com o carro parado, coloque em ponto morto e puxe o freio de mão.','Seta desligada']
 ];
 let place='far',view='draw',t=0,playing=false,last=null,frame=0,activePhase=-1;
 $('base').innerHTML=BASE;
 const clamp=(x,min,max)=>Math.max(min,Math.min(max,x));
-const at=(u)=>{const path=PATHS[place],i=clamp(u,0,1)*(path.length-1),j=Math.floor(i),a=path[j],b=path[Math.min(j+1,path.length-1)],d=i-j;return [a[0]+(b[0]-a[0])*d,a[1]+(b[1]-a[1])*d];};
+// A roda direita termina sobre a faixa, com a carroceria próxima à guia.
+const parkingTarget={stripeX:622,carScale:.7,rightWheelX:16.5};
+function parkingPoint(x,y,u){const progress=clamp(u,0,1),ease=progress*progress*(3-2*progress);const finalX=PATHS[place].at(-1)[0];const targetX=parkingTarget.stripeX-parkingTarget.rightWheelX*parkingTarget.carScale;return [x+(targetX-finalX)*ease,y];}
+const at=(u)=>{const path=PATHS[place],i=clamp(u,0,1)*(path.length-1),j=Math.floor(i),a=path[j],b=path[Math.min(j+1,path.length-1)],d=i-j;return parkingPoint(a[0]+(b[0]-a[0])*d,a[1]+(b[1]-a[1])*d,u);};
 function heading(u){const [ax,ay]=at(u-.016),[bx,by]=at(u+.016);return Math.atan2(bx-ax,ay-by);}
 function update(){
   const u=clamp((t-.14)/.68,0,1),[x,y]=at(u);
@@ -45,10 +48,10 @@ function tick(now){if(!playing)return;if(last!==null)t=Math.min(1,t+(now-last)/3
 function configure(){
   const o=options[place];$('scene').setAttribute('viewBox',o.frame);
   $('place-count').textContent=`OPÇÃO ${o.number}`;$('place-name').textContent=o.title;$('place-detail').textContent=o.detail;
-  $('route-path').setAttribute('d',PATHS[place].map(([x,y],i)=>`${i?'L':'M'} ${x} ${y}`).join(' '));
+  $('route-path').setAttribute('d',PATHS[place].map(([x,y],i,path)=>{const point=parkingPoint(x,y,i/(path.length-1));return `${i?'L':'M'} ${point[0]} ${point[1]}`;}).join(' '));
   $('guide').setAttribute('d',o.guide);
   const parkingY=PATHS[place].at(-1)[1];
-  $('parking-marking').setAttribute('d',`M622 ${parkingY-44} V${parkingY+28}`);
+  $('parking-marking').setAttribute('d',`M${parkingTarget.stripeX} ${parkingY-44} V${parkingY+28}`);
   $('map-labels').replaceChildren(...o.labels.map(([x,y,label])=>{const n=document.createElementNS('http://www.w3.org/2000/svg','text');n.setAttribute('x',x);n.setAttribute('y',y);n.textContent=label;return n;}));
   document.querySelectorAll('.option').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.place===place)));
   document.querySelectorAll('.view').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===view)));
