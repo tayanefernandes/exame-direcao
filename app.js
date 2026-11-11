@@ -164,7 +164,7 @@ function prepareMapPaths(){
  routeSegments=ds.map(d=>{const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',d);return path;});
  routeLengths=routeSegments.map(path=>path.getTotalLength());
  routeTotalLength=routeLengths.reduce((a,b)=>a+b,0);
- $('driven-route').setAttribute('d',ds.join(' '));
+ $('driven-route').setAttribute('d',ds.map((d,i)=>i?d.replace(/^M/,'L'):d).join(' '));
 }
 function routeHold(i){return i===0?3000:i===3?2500:i===5?5000:0;}
 function routeDuration(i){return routeHold(i)+clamp(routeLengths[i]*36,4000,13000);}
