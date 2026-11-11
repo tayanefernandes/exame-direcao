@@ -47,3 +47,9 @@ Versão recuperada do site Volta de Prova, commit original `9e2aab994c621af6a273
 Para acompanhar a indexação, cadastrar uma propriedade de prefixo de URL no Google Search Console com https://exame-direcao.vercel.app/, concluir a verificação de propriedade com o código fornecido pelo Google, enviar https://exame-direcao.vercel.app/sitemap.xml e inspecionar a página inicial. Não há código de verificação configurado enquanto o proprietário não fornecer um.
 
 Ao alterar o conteúdo, atualizar a data real de modificação no sitemap.xml. Caso o domínio mude, atualizar também canonical, metadados sociais, JSON-LD, robots.txt e sitemap.xml. SEO não garante indexação nem posição nos resultados de busca.
+
+## Pontuação do exame
+
+Seção #pontuacao adicionada em 11/11/2026. Usa o limite de 10 pontos e pesos 1/2/4/6 da Resolução Contran 1.020/2025, com adoção anunciada pelo Detran-SP em 17/03/2026. Diferencia reprovação por pontos de interrupção por segurança. Tabelas trazem exemplos resumidos para categoria B, com artigos do CTB e acesso às fichas completas no MBEDV. A seção não apresenta os exemplos como catálogo exaustivo nem usa a antiga lista de faltas eliminatórias.
+
+Fontes: Resolução Contran 1.020/2025 (arts. 45 a 47), MBEDV versão 1.0 de janeiro de 2026 e comunicado de atualização do Detran-SP. Links oficiais e data de conferência estão na página. Revisar esses dados quando houver alteração normativa.
