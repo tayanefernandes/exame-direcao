@@ -1,4 +1,4 @@
-# Volta de Prova | Sorocaba
+# Exame de Direção | Sorocaba
 
 Site de estudo do percurso da prova prática de direção em Sorocaba.
 
@@ -34,3 +34,16 @@ Configuração: Framework Other, raiz do repositório, saída `.`, comandos de i
 ## Origem
 
 Versão recuperada do site Volta de Prova, commit original `9e2aab994c621af6a27344c945d69e5c4cfb45b2`, com os arquivos de aplicação preservados.
+
+## SEO e indexação
+
+- URL principal: https://exame-direcao.vercel.app/
+- Título, descrição, canonical, Open Graph e Twitter Card no HTML.
+- Dados estruturados WebSite e WebPage descrevem o conteúdo real da página.
+- Resumo do percurso e dúvidas frequentes disponíveis no HTML inicial, sem depender do JavaScript.
+- robots.txt permite rastreamento e informa o sitemap.xml. O sitemap lista apenas a página canônica; âncoras do simulador não são páginas separadas.
+- /index.html redireciona permanentemente para /.
+
+Para acompanhar a indexação, cadastrar uma propriedade de prefixo de URL no Google Search Console com https://exame-direcao.vercel.app/, concluir a verificação de propriedade com o código fornecido pelo Google, enviar https://exame-direcao.vercel.app/sitemap.xml e inspecionar a página inicial. Não há código de verificação configurado enquanto o proprietário não fornecer um.
+
+Ao alterar o conteúdo, atualizar a data real de modificação no sitemap.xml. Caso o domínio mude, atualizar também canonical, metadados sociais, JSON-LD, robots.txt e sitemap.xml. SEO não garante indexação nem posição nos resultados de busca.
