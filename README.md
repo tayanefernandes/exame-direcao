@@ -4,6 +4,8 @@ Site de estudo do percurso da prova prática de direção em Sorocaba.
 
 ## Recursos
 
+- Botão de contato no rodapé abre o formulário Tally `q5DXQ8` em popup, com a integração oficial. O código do site usa apenas o ID público do formulário.
+
 - Google Analytics 4 conectado ao fluxo `G-CHGBEKSFC0`, com carregamento assíncrono da tag do Google e coleta básica de visualizações da página.
 
 - Capa com estrada vetorial estilizada, carrinho, placas de PARE, limite de velocidade e curva. A animação é decorativa, separada do percurso de estudo; pode ser pausada, respeita movimento reduzido e para fora da tela. O carrinho sinaliza nas curvas e faz uma pausa ilustrativa junto ao PARE.
