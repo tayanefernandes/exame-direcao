@@ -59,8 +59,12 @@ Ao alterar o conteúdo, atualizar a data real de modificação no sitemap.xml. C
 
 ## Pontuação do exame
 
-Seção #pontuacao adicionada em 11/11/2026. Usa o limite de 10 pontos e pesos 1/2/4/6 da Resolução Contran 1.020/2025, com adoção anunciada pelo Detran-SP em 17/03/2026. Diferencia reprovação por pontos de interrupção por segurança. Tabelas trazem exemplos resumidos para categoria B, com artigos do CTB e acesso às fichas completas no MBEDV. A seção não apresenta os exemplos como catálogo exaustivo nem usa a antiga lista de faltas eliminatórias.
+Seção #pontuacao atualizada em 16/11/2026 a partir do formulário de avaliação do exame prático do Detran-SP, categoria B, fornecido para esta atualização. Publica somente a lista de condutas, sem imagens da ficha, dados pessoais, identificação de examinadores ou resultado individual.
 
-Fontes: Resolução Contran 1.020/2025 (arts. 45 a 47), MBEDV versão 1.0 de janeiro de 2026 e comunicado de atualização do Detran-SP. Links oficiais e data de conferência estão na página. Revisar esses dados quando houver alteração normativa.
+- 40 itens nos grupos I a IV: 10 gravíssimos (6 pontos), 11 graves (4), 11 médios (2) e 8 leves (1). Inclui um campo genérico de outra infração em cada grupo, sem apresentar a lista como todo o CTB.
+- 15 situações do grupo V: incapacidade técnica/instabilidade emocional, com 0 ponto. Explica que não somam pontos e que interrupção exige os critérios e a fundamentação previstos na norma.
+- Descrições resumidas, com incisos e alcance conferidos no CTB e no MBEDV. Usa art. 182, II para parada de 50 cm a 1 m e art. 182, III para parada a mais de 1 m. Explicita as exceções de dirigir com uma mão, contramão e conversão autorizada.
+- Mantém limite de 10 pontos, pesos 1/2/4/6 e distinção entre reprovação por pontos e interrupção. Preserva FAQ sobre guia, motor apagar, ajustes e sinalização; acrescenta partida e diferença entre parada e estacionamento.
+- A lista substitui os 39 exemplos anteriores pelos campos do formulário. Não incorpora as marcações do exame individual nem interpreta a validade de qualquer resultado.
 
-A seleção de exemplos em #pontuacao foi ampliada de 19 para 39 em 11/11/2026: 7 leves, 12 médias, 13 graves e 7 gravíssimas. Inclui observação ao sair, painel, marchas, estacionamento, calçado, descidas, conversões, iluminação e chuva. Os exemplos do art. 169 incluem ressalva de enquadramento específico. Pesos de 230, XIX (grave) e 231, IX (média) conferidos no CTB consolidado da ANTT por haver inconsistências textuais nas fichas do MBEDV. Permanece a distinção entre erro isolado, infração e interrupção por segurança.
+Fontes normativas: Resolução Contran 1.020/2025 (arts. 45 a 47), MBEDV versão 1.0 de janeiro de 2026, CTB consolidado na ANTT e comunicado do Detran-SP de 17/03/2026. Links e data da atualização estão na página. Revisar quando houver alteração normativa. O formulário é a fonte da seleção de itens, e não substitui a legislação.
