@@ -47,47 +47,87 @@ class PatioCockpit {
   ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.strokeStyle=color;ctx.lineWidth=lineWidth;ctx.stroke();
  }
  world(ctx,width,height,camera,mirror=false){
-  const sky=ctx.createLinearGradient(0,0,0,height*.55);sky.addColorStop(0,'#b7d0dc');sky.addColorStop(1,'#eef2e9');ctx.fillStyle=sky;ctx.fillRect(0,0,width,height);
-  const horizon=height*camera.horizon;ctx.fillStyle='#94a58d';ctx.fillRect(0,horizon,width,height-horizon);
-  const ground=ctx.createLinearGradient(0,horizon,0,height);ground.addColorStop(0,'#d7d9cc');ground.addColorStop(1,'#a6aaa1');ctx.fillStyle=ground;ctx.fillRect(0,horizon+2,width,height-horizon);
-  // Juntas do pavimento: as linhas acompanham o movimento do veículo.
-  for(let y=Math.floor((camera.y-1000)/16)*16;y<camera.y+1000;y+=16)this.line(ctx,{x:320,y,z:0},{x:850,y,z:0},'#717d6a22',.7,camera,width,height);
-  for(let x=340;x<=850;x+=26)this.line(ctx,{x,y:camera.y-1200,z:0},{x,y:camera.y+1200,z:0},'#717d6a17',.65,camera,width,height);
-  this.grass.forEach(points=>this.polygon(ctx,points,'#839a67',camera,width,height));
-  const stripeY=this.state.stripeY;this.polygon(ctx,[{x:618,y:stripeY-44,z:.2},{x:625,y:stripeY-44,z:.2},{x:625,y:stripeY+28,z:.2},{x:618,y:stripeY+28,z:.2}],'#e9bf24',camera,width,height);
-  // A guia possui uma face vertical, em vez de ser somente uma linha no chão.
+  const sky=ctx.createLinearGradient(0,0,0,height*.55);sky.addColorStop(0,'#abbcc5');sky.addColorStop(1,'#e8ebe5');ctx.fillStyle=sky;ctx.fillRect(0,0,width,height);
+  const horizon=height*camera.horizon;ctx.fillStyle='#91a183';ctx.fillRect(0,horizon,width,height-horizon);
+  const ground=ctx.createLinearGradient(0,horizon,0,height);ground.addColorStop(0,'#c8c2b4');ground.addColorStop(1,'#9f988b');ctx.fillStyle=ground;ctx.fillRect(0,horizon+2,width,height-horizon);
+  // Piso de blocos, com juntas intercaladas, visível nas duas opções.
+  const groundMin=Math.floor((camera.y-650)/9)*9,groundMax=camera.y+650;
+  for(let y=groundMin;y<groundMax;y+=9){
+   this.line(ctx,{x:390,y,z:.05},{x:730,y,z:.05},'#625e5240',.6,camera,width,height);
+   for(let x=390+((Math.round(y/9)%2)*8);x<730;x+=16)this.line(ctx,{x,y,z:.05},{x,y:y+9,z:.05},'#68635335',.55,camera,width,height);
+  }
+  this.grass.forEach(points=>this.polygon(ctx,points,'#6f8c56',camera,width,height));
+  const stripeY=this.state.stripeY;this.polygon(ctx,[{x:618,y:stripeY-34,z:.2},{x:625,y:stripeY-34,z:.2},{x:625,y:stripeY+12,z:.2},{x:618,y:stripeY+12,z:.2}],'#e6bd38',camera,width,height);
   this.curbs.forEach(points=>{for(let i=1;i<points.length;i++){
-   const a=points[i-1],b=points[i];this.polygon(ctx,[{...a,z:0},{...b,z:0},{...b,z:2.4},{...a,z:2.4}],'#a5a69b',camera,width,height);
-   this.polygon(ctx,[{...a,z:2.4},{...b,z:2.4},{x:b.x+3,y:b.y,z:2.4},{x:a.x+3,y:a.y,z:2.4}],'#e1dfc8',camera,width,height);
+   const a=points[i-1],b=points[i];this.polygon(ctx,[{...a,z:0},{...b,z:0},{...b,z:2.4},{...a,z:2.4}],'#858779',camera,width,height);
+   this.polygon(ctx,[{...a,z:2.4},{...b,z:2.4},{x:b.x+3,y:b.y,z:2.4},{x:a.x+3,y:a.y,z:2.4}],'#c9c9b7',camera,width,height);
   }});
   if(mirror)return;
   const faces=[];
-  const add=(points,color,stroke)=>{const distance=points.reduce((sum,p)=>sum+PatioCockpit.cameraPoint(p,camera).depth,0)/points.length;if(distance>1)faces.push({points,color,stroke,distance});};
-  // Galpão e telhado quadrado ocupam as posições do desenho do pátio.
-  this.roofs.forEach((roof,index)=>{
-   const roofHeight=index===0?74:47;
-   if(index===0){for(let i=0;i<roof.length;i++){const a=roof[i],b=roof[(i+1)%roof.length];add([{...a,z:0},{...b,z:0},{...b,z:roofHeight},{...a,z:roofHeight}],i%2?'#c8c8b9':'#dad9cc','#9da69c');}}
-   else roof.forEach(p=>{add([{x:p.x-2,y:p.y,z:0},{x:p.x+2,y:p.y,z:0},{x:p.x+2,y:p.y,z:roofHeight},{x:p.x-2,y:p.y,z:roofHeight}],'#b5bcb1','#7c8b7b');});
-   add(roof.map(p=>({...p,z:roofHeight})),index===0?'#b8bcb5':'#bac2bd','#86938a');
-   if(index===1)add(roof.map(p=>({...p,z:roofHeight-3})),'#8e9b93','#7c8a82');
-  });
-  // Árvores estilizadas com tronco e copa, mantendo a posição do mapa.
+  const add=(points,color,stroke)=>{
+   const depths=points.map(p=>PatioCockpit.cameraPoint(p,camera).depth);
+   if(Math.max(...depths)<3)return;
+   faces.push({points,color,stroke,distance:depths.reduce((sum,d)=>sum+d,0)/depths.length});
+  };
+  const box=(x,y,w,d,z,h,color,top=color)=>{
+   const p=[{x,y,z},{x:x+w,y,z},{x:x+w,y:y+d,z},{x,y:y+d,z}];
+   p.forEach((a,i)=>{const b=p[(i+1)%4];add([a,b,{...b,z:z+h},{...a,z:z+h}],i%2?color:'#e5e4da','#8b92876b');});
+   add(p.map(p=>({...p,z:z+h})),top,'#85908370');
+  };
+  // Galpão comprido à esquerda, fachada clara, pilares e faixa de janelas altas.
+  const building=this.roofs[0],roofHeight=74;
+  building.forEach((a,i)=>{const b=building[(i+1)%building.length];add([{...a,z:0},{...b,z:0},{...b,z:roofHeight},{...a,z:roofHeight}],i%2?'#d2d4cd':'#e7e7dc','#89928b');});
+  add(building.map(p=>({...p,z:roofHeight})),'#a7afb0','#7f8c8a');
+  for(let y=630;y<1610;y+=74){
+   const x=355+(y-505)*25/1095;
+   add([{x:x+1,y,z:48},{x:x+2,y:y+66,z:48},{x:x+2,y:y+66,z:64},{x:x+1,y,z:64}],'#42535a');
+   box(x-1,y,4,4,0,74,'#7f8a85');
+  }
+  // Cobertura metálica transversal: passagem aberta e sala do lado direito.
+  const roof=this.roofs[1],ceiling=47;
+  add(roof.map(p=>({...p,z:ceiling-3})),'#65736e','#74817c');
+  roof.forEach((a,i)=>{const b=roof[(i+1)%roof.length];add([{...a,z:ceiling-3},{...b,z:ceiling-3},{...b,z:ceiling},{...a,z:ceiling}],'#d0d4cc','#8a968e');});
+  add(roof.map(p=>({...p,z:ceiling})),'#b9c3bf','#82938c');
+  PATIO_ENV.posts.forEach(p=>box(p.x-1.7,p.y-1.7,3.4,3.4,0,44,'#d4d9cf'));
+  for(const y of [1030,1080,1135,1190,1240])box(430,y,277,2,42,3,'#a8b1ab','#9ca9a2');
+  box(588,1030,4,212,41,3,'#9eaaa2');
+  const room=PATIO_ENV.room;
+  box(room.x,room.y,room.width,room.depth,0,room.height,'#eeede5','#d5d8ce');
+  // Portas e janelas ficam nos planos da sala, sem ocupar o corredor.
+  for(const y of [1080,1152]){
+   add([{x:room.x-.2,y,z:13},{x:room.x-.2,y:y+25,z:13},{x:room.x-.2,y:y+25,z:33},{x:room.x-.2,y,z:33}],'#627575','#ccd1c7');
+   add([{x:room.x-.4,y:y+11,z:13},{x:room.x-.4,y:y+12,z:13},{x:room.x-.4,y:y+12,z:33},{x:room.x-.4,y:y+11,z:33}],'#bfc7be');
+  }
+  add([{x:647,y:1247.3,z:0},{x:663,y:1247.3,z:0},{x:663,y:1247.3,z:30},{x:647,y:1247.3,z:30}],'#7d8981','#bfc5b9');
+  add([{x:640,y:1200,z:9},{x:640,y:1220,z:9},{x:640,y:1220,z:23},{x:640,y:1200,z:23}],'#a8574d');
+  PATIO_ENV.bollards.forEach(p=>box(p.x-1,p.y-1,2,2,0,11,'#edece0'));
+  // Gradil no limite do canteiro, como na referência, com árvores à direita.
+  for(const [a,b] of PATIO_ENV.fences){
+   const n=Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/8);
+   for(let i=0;i<=n;i++){const u=i/n,x=a.x+(b.x-a.x)*u,y=a.y+(b.y-a.y)*u;box(x-.4,y-.4,.8,.8,0,21,'#c3cabe');}
+   for(const z of [5,20])add([{...a,z},{...b,z},{...b,z:z+.8},{...a,z:z+.8}],'#b9c4b6');
+  }
+  // O carro à frente representa somente o início observado da segunda opção.
+  const other=this.state.companion;
+  if(other){
+   box(other.x-12,other.y-34,24,47,0,10,'#e8e7df','#e4e5dc');
+   box(other.x-9,other.y-22,18,24,10,6,'#4a626b','#53696f');
+   add([{x:other.x-8,y:other.y+2.2,z:10},{x:other.x+8,y:other.y+2.2,z:10},{x:other.x+8,y:other.y+2.2,z:15},{x:other.x-8,y:other.y+2.2,z:15}],'#455d67');
+   add([{x:other.x-12.2,y:other.y+13.2,z:4},{x:other.x+12.2,y:other.y+13.2,z:4},{x:other.x+12.2,y:other.y+13.2,z:8},{x:other.x-12.2,y:other.y+13.2,z:8}],'#ddb233');
+   for(const x of [-8,8])add([{x:other.x+x-2,y:other.y+13.4,z:2},{x:other.x+x+2,y:other.y+13.4,z:2},{x:other.x+x+2,y:other.y+13.4,z:4},{x:other.x+x-2,y:other.y+13.4,z:4}],'#b45d50');
+  }
   this.trees.forEach((tree,index)=>{
-   const local=PatioCockpit.cameraPoint(tree,camera);if(local.depth<4)return;
-   faces.push({tree,index,distance:local.depth});
+   const depth=PatioCockpit.cameraPoint(tree,camera).depth;
+   if(depth>=4)faces.push({tree,index,distance:depth});
   });
   faces.sort((a,b)=>b.distance-a.distance).forEach(face=>{
    if(!face.tree){this.polygon(ctx,face.points,face.color,camera,width,height,face.stroke);return;}
    const tree=face.tree,local=PatioCockpit.cameraPoint(tree,camera),groundPoint=PatioCockpit.project({...local,z:0},width,height,camera),top=PatioCockpit.project({...local,z:55},width,height,camera),radius=Math.min(width*2,tree.radius*camera.focal/local.depth);
-   ctx.strokeStyle='#6e6c55';ctx.lineWidth=Math.max(2,4*camera.focal/local.depth);ctx.beginPath();ctx.moveTo(groundPoint.x,groundPoint.y);ctx.lineTo(top.x,top.y);ctx.stroke();
-   const crown=PatioCockpit.project({...local,z:68},width,height,camera);ctx.fillStyle=face.index%2?'#617e4e':'#6f8957';ctx.beginPath();ctx.ellipse(crown.x,crown.y,radius,radius*.84,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#8ca26b88';ctx.beginPath();ctx.ellipse(crown.x-radius*.25,crown.y-radius*.23,radius*.68,radius*.52,-.2,0,Math.PI*2);ctx.fill();
+   ctx.strokeStyle='#716b55';ctx.lineWidth=Math.max(2,4*camera.focal/local.depth);ctx.beginPath();ctx.moveTo(groundPoint.x,groundPoint.y);ctx.lineTo(top.x,top.y);ctx.stroke();
+   const crown=PatioCockpit.project({...local,z:68},width,height,camera);ctx.fillStyle=face.index%2?'#526e46':'#658153';ctx.beginPath();ctx.ellipse(crown.x,crown.y,radius,radius*.84,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#8ba46c80';ctx.beginPath();ctx.ellipse(crown.x-radius*.25,crown.y-radius*.23,radius*.68,radius*.52,-.2,0,Math.PI*2);ctx.fill();
   });
-  // Portão ao fundo, com passagem livre pelo corredor.
-  const fenceA={x:470,y:597},fenceB={x:638,y:679};
-  for(let i=0;i<=22;i++){const t=i/22,x=fenceA.x+(fenceB.x-fenceA.x)*t,y=fenceA.y+(fenceB.y-fenceA.y)*t;this.line(ctx,{x,y,z:0},{x,y,z:27},'#627269',1.2,camera,width,height);}
-  for(const z of [5,15,27])this.line(ctx,{...fenceA,z},{...fenceB,z},'#7e8b80',1.4,camera,width,height);
-  const haze=ctx.createLinearGradient(0,horizon-25,0,height*.72);haze.addColorStop(0,'#eaf0e419');haze.addColorStop(1,'#ffffff00');ctx.fillStyle=haze;ctx.fillRect(0,0,width,height);
  }
+
  draw(){
   if(this.root.hidden||!this.state)return;
   const surface=this.fit(this.canvas);if(!surface)return;

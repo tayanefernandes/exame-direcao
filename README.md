@@ -68,3 +68,13 @@ Seção #pontuacao atualizada em 16/11/2026 a partir do formulário de avaliaç�
 - A lista substitui os 39 exemplos anteriores pelos campos do formulário. Não incorpora as marcações do exame individual nem interpreta a validade de qualquer resultado.
 
 Fontes normativas: Resolução Contran 1.020/2025 (arts. 45 a 47), MBEDV versão 1.0 de janeiro de 2026, CTB consolidado na ANTT e comunicado do Detran-SP de 17/03/2026. Links e data da atualização estão na página. Revisar quando houver alteração normativa. O formulário é a fonte da seleção de itens, e não substitui a legislação.
+
+## Ambiente do pátio revisado por vídeo
+
+Atualização de 17/11/2026 com base na gravação fornecida do short https://www.youtube.com/shorts/HJ8Fikjb6R8. Reconstrução em código, sem redistribuir o vídeo ou imagens do autor.
+
+- As duas opções compartilham piso de blocos, canteiro com guia, galpão claro à esquerda, gradil e árvores à direita, cobertura transversal, pilares, sala de apoio e balizadores.
+- A opção 1 para antes da cobertura; um segundo carro ilustrativo segue à frente sob o telhado, representando o início visível da opção 2.
+- A opção 2 começa dentro da passagem coberta, atravessa o corredor livre e só aproxima à direita após sair da cobertura. A posição final após o telhado não aparece completa na gravação e permanece estimada.
+- Geometria em patio-environment.js compartilhada pelas vistas desenhada e interna. A câmera continua fixa no banco, com capô ocultando o chão próximo e retrovisor para conferir a guia.
+- Trajetórias verificadas com o contorno do carro para não cruzar a guia, sala ou apoios. As rodas direitas terminam sobre a faixa amarela. Medidas e pontos de giro são ilustrativos, sem levantamento dimensional do pátio.

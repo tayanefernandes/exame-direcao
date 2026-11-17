@@ -1,8 +1,8 @@
 'use strict';
 const $ = id => document.getElementById(id);
 const options = {
-  far: {number:2, title:'Depois do telhado quadrado', detail:'Opção 2: encoste depois de passar sob o telhado.', frame:'350 570 455 555', guide:'M 636 680 Q 622 720 624 762 L 624 940', labels:[[513,626,'Saída · R. Diadema'],[463,1080,'Telhado quadrado']], align:.38},
-  near: {number:1, title:'Antes do telhado quadrado', detail:'Opção 1: encoste antes do telhado. Ao sair da vaga, siga por baixo dele.', frame:'350 1170 455 630', guide:'M 650 1330 Q 620 1370 624 1420 L 624 1605', labels:[[460,1230,'Telhado quadrado'],[440,1752,'Portão · R. Cerquilho']], align:.5}
+  far: {number:2, title:'Depois do telhado quadrado', detail:'Opção 2: encoste depois de passar sob o telhado.', frame:'350 610 455 730', guide:'M 636 680 Q 626 720 628 762 L 628 940', labels:[[490,665,'Saída · R. Diadema'],[430,1175,'Passagem coberta']], align:.75},
+  near: {number:1, title:'Antes do telhado quadrado', detail:'Opção 1: encoste antes do telhado. Ao sair da vaga, siga por baixo dele.', frame:'350 1120 455 630', guide:'M 628 1250 L 628 1605', labels:[[445,1190,'Cobertura'],[646,1320,'Canteiro'],[430,1715,'Entrada · R. Cerquilho']], align:.5}
 };
 const phases = [
   ['Prepare a aproximação','Observe os retrovisores e o entorno. Sinalize à direita antes de se aproximar.','→ Direita'],
@@ -12,6 +12,11 @@ const phases = [
 ];
 let place='far',view='draw',t=0,playing=false,last=null,frame=0,activePhase=-1;
 $('base').innerHTML=BASE;
+PATIO_ENV.install($('base'));
+const companion=document.createElementNS('http://www.w3.org/2000/svg','g');
+companion.id='patio-companion';companion.setAttribute('role','img');companion.setAttribute('aria-label','Carro ilustrativo à frente, seguindo sob a cobertura para a segunda opção');
+companion.innerHTML='<rect x="-12" y="-34" width="24" height="47" rx="5" fill="#faf9ef" stroke="#515954"/><path d="M-9 -20H9L8 -9H-8Z M-9 1H9V7H-9Z" fill="#566d78"/><path d="M-12 -4H12" stroke="#e4b22f" stroke-width="6"/>';
+$('base').after(companion);
 const cockpit=new PatioCockpit($('cockpit-view'),$('base'));
 const clamp=(x,min,max)=>Math.max(min,Math.min(max,x));
 // A roda direita termina sobre a faixa, com a carroceria próxima à guia.
@@ -58,26 +63,35 @@ function update(){
   $('wheel').setAttribute('transform',`rotate(${steer*14} 50 50)`);
   $('wheel-note').textContent=Math.abs(steer)<1?'Centrado':steer>0?'Virando à direita':'Corrigindo à esquerda';
   const phase=t<.14?0:t>=.82?3:u<options[place].align?1:2;
-  if(phase!==activePhase){
-    activePhase=phase;const [title,detail]=phases[phase];
+  const phaseData=phases.map(row=>[...row]);
+  if(place==='far'&&phase===1&&u<.5)phaseData[1]=['Passe sob a cobertura','Siga pelo corredor livre, à esquerda da sala de apoio. Observe os pilares e o caminho à frente.','→ Direita'];
+  else if(place==='far'&&phase===1)phaseData[1]=['Aproxime após a cobertura','Depois da passagem coberta, aproxime devagar da guia à direita. O trecho final é estimado.','→ Direita'];
+  else if(place==='near'&&phase===1)phaseData[1]=['Aproxime antes da cobertura','Aproxime do canteiro à direita, antes da sala e dos pilares. Preserve espaço para alinhar.','→ Direita'];
+  const other=PATIO_ENV.companion(t);companion.toggleAttribute('hidden',place!=='near'||view==='photo');
+  companion.setAttribute('transform',`translate(${other.x} ${other.y}) rotate(${other.angle*180/Math.PI})`);
+  const underRoof=x>=418&&x<=718&&y>=1018&&y<=1247;
+  $('vehicle').dataset.underRoof=String(underRoof);
+  $('scene').dataset.place=place;
+  if(phase!==activePhase||place==='far'){ 
+    activePhase=phase;const [title,detail]=phaseData[phase];
     $('phase-number').textContent=`PASSO ${phase+1} DE 4`;
     $('phase-title').textContent=title;$('phase-detail').textContent=detail;
   }
   updatePatioSignal();
-  TRAINING.renderPatio(t,options[place].align,phase,x,y,(u===0||u===1)?0:a,phases[phase][0],phases[phase][1],$('driver-controls').dataset.signal);
-  cockpit.render({x,y,angle:(u===0||u===1)?0:a,stripeY:PATHS[place].at(-1)[1],place,signal:$('driver-controls').dataset.signal,finished:t>=.82});
+  TRAINING.renderPatio(t,options[place].align,phase,x,y,(u===0||u===1)?0:a,phaseData[phase][0],phaseData[phase][1],$('driver-controls').dataset.signal);
+  cockpit.render({x,y,angle:(u===0||u===1)?0:a,stripeY:PATHS[place].at(-1)[1],place,progress:t,companion:place==='near'?other:null,signal:$('driver-controls').dataset.signal,finished:t>=.82});
   $('progress').value=Math.round(t*1000);
   $('progress').style.setProperty('--progress',`${t*100}%`);
 }
 function stop(){playing=false;last=null;cancelAnimationFrame(frame);$('play').textContent=t>=1?'↻ Repetir':'▶ Reproduzir';}
 function tick(now){if(!playing)return;if(last!==null)t=Math.min(1,t+(now-last)/38000);last=now;update();if(t>=1)stop();else frame=requestAnimationFrame(tick);}
 function configure(){
-  const o=options[place];$('scene').setAttribute('viewBox',o.frame);
+  activePhase=-1;const o=options[place];$('scene').setAttribute('viewBox',o.frame);
   $('place-count').textContent=`OPÇÃO ${o.number}`;$('place-name').textContent=o.title;$('place-detail').textContent=o.detail;
   $('route-path').setAttribute('d',PATHS[place].map(([x,y],i,path)=>{const point=parkingPoint(x,y,i/(path.length-1));return `${i?'L':'M'} ${point[0]} ${point[1]}`;}).join(' '));
   $('guide').setAttribute('d',o.guide);
   const parkingY=PATHS[place].at(-1)[1];
-  $('parking-marking').setAttribute('d',`M${parkingTarget.stripeX} ${parkingY-44} V${parkingY+28}`);
+  $('parking-marking').setAttribute('d',`M${parkingTarget.stripeX} ${parkingY-34} V${parkingY+12}`);
   $('map-labels').replaceChildren(...o.labels.map(([x,y,label])=>{const n=document.createElementNS('http://www.w3.org/2000/svg','text');n.setAttribute('x',x);n.setAttribute('y',y);n.textContent=label;return n;}));
   document.querySelectorAll('.option').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.place===place)));
   document.querySelectorAll('.view').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===view)));
@@ -88,7 +102,7 @@ function configure(){
   $('scene-title').textContent=(view==='photo'?'Foto aérea: ':'Desenho ilustrativo: ')+o.title;
   update();
 }
-document.querySelectorAll('.option').forEach(b=>b.onclick=()=>{stop();t=0;place=b.dataset.place;configure();if(window.refreshRoute)window.refreshRoute();});
+document.querySelectorAll('.option').forEach(b=>b.onclick=()=>{t=0;stop();place=b.dataset.place;configure();if(window.refreshRoute)window.refreshRoute();});
 document.querySelectorAll('.view').forEach(b=>b.onclick=()=>{view=b.dataset.view;configure();});
 $('play').onclick=()=>{if(playing){stop();update();return;}if(t>=1)t=0;playing=true;last=null;$('play').textContent='❚❚ Pausar';frame=requestAnimationFrame(tick);};
 $('reset').onclick=()=>{t=0;stop();update();};
