@@ -8,7 +8,7 @@ class PatioCockpit {
   this.grass=Array.from(base.querySelectorAll('.prop-grass'),polygon);
   this.roofs=Array.from(base.querySelectorAll('.prop-roof'),polygon);
   this.curbs=Array.from(base.querySelectorAll('.prop-estimated'),node=>sampleRoutePath(node.getAttribute('d')));
-  this.trees=Array.from(base.querySelectorAll('circle.prop-tree')).filter((_,i)=>i%3===0).map(node=>({x:Number(node.getAttribute('cx')),y:Number(node.getAttribute('cy')),radius:Number(node.getAttribute('r'))}));
+  this.trees=Array.from(base.querySelectorAll('circle.prop-tree')).map(node=>({x:Number(node.getAttribute('cx')),y:Number(node.getAttribute('cy')),radius:Number(node.getAttribute('r'))}));
   this.observer=new ResizeObserver(()=>this.draw());this.observer.observe(root);
  }
  render(state){this.state=state;this.draw();}
@@ -78,9 +78,9 @@ class PatioCockpit {
   const building=this.roofs[0],roofHeight=74;
   building.forEach((a,i)=>{const b=building[(i+1)%building.length];add([{...a,z:0},{...b,z:0},{...b,z:roofHeight},{...a,z:roofHeight}],i%2?'#d2d4cd':'#e7e7dc','#89928b');});
   add(building.map(p=>({...p,z:roofHeight})),'#a7afb0','#7f8c8a');
-  for(let y=630;y<1610;y+=74){
-   const x=355+(y-505)*25/1095;
-   add([{x:x+1,y,z:48},{x:x+2,y:y+66,z:48},{x:x+2,y:y+66,z:64},{x:x+1,y,z:64}],'#42535a');
+  for(let y=865;y<1540;y+=62){
+   const x=530;
+   add([{x:x+1,y,z:48},{x:x+2,y:y+54,z:48},{x:x+2,y:y+54,z:64},{x:x+1,y,z:64}],'#42535a');
    box(x-1,y,4,4,0,74,'#7f8a85');
   }
   // Cobertura metálica transversal: passagem aberta e sala do lado direito.
@@ -89,12 +89,12 @@ class PatioCockpit {
   roof.forEach((a,i)=>{const b=roof[(i+1)%roof.length];add([{...a,z:ceiling-3},{...b,z:ceiling-3},{...b,z:ceiling},{...a,z:ceiling}],'#d0d4cc','#8a968e');});
   add(roof.map(p=>({...p,z:ceiling})),'#b9c3bf','#82938c');
   PATIO_ENV.posts.forEach(p=>box(p.x-1.7,p.y-1.7,3.4,3.4,0,44,'#d4d9cf'));
-  for(const y of [1030,1080,1135,1190,1240])box(430,y,277,2,42,3,'#a8b1ab','#9ca9a2');
-  box(588,1030,4,212,41,3,'#9eaaa2');
+  for(const y of [1166,1185,1205,1223,1240])box(520,y,162,2,42,3,'#a8b1ab','#9ca9a2');
+  box(606,1166,4,78,41,3,'#9eaaa2');
   const room=PATIO_ENV.room;
   box(room.x,room.y,room.width,room.depth,0,room.height,'#eeede5','#d5d8ce');
   // Portas e janelas ficam nos planos da sala, sem ocupar o corredor.
-  for(const y of [1080,1152]){
+  for(const y of [1175,1212]){
    add([{x:room.x-.2,y,z:13},{x:room.x-.2,y:y+25,z:13},{x:room.x-.2,y:y+25,z:33},{x:room.x-.2,y,z:33}],'#627575','#ccd1c7');
    add([{x:room.x-.4,y:y+11,z:13},{x:room.x-.4,y:y+12,z:13},{x:room.x-.4,y:y+12,z:33},{x:room.x-.4,y:y+11,z:33}],'#bfc7be');
   }

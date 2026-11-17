@@ -78,3 +78,7 @@ Atualização de 17/11/2026 com base na gravação fornecida do short https://ww
 - A opção 2 começa dentro da passagem coberta, atravessa o corredor livre e só aproxima à direita após sair da cobertura. A posição final após o telhado não aparece completa na gravação e permanece estimada.
 - Geometria em patio-environment.js compartilhada pelas vistas desenhada e interna. A câmera continua fixa no banco, com capô ocultando o chão próximo e retrovisor para conferir a guia.
 - Trajetórias verificadas com o contorno do carro para não cruzar a guia, sala ou apoios. As rodas direitas terminam sobre a faixa amarela. Medidas e pontos de giro são ilustrativos, sem levantamento dimensional do pátio.
+
+### Correção das proporções em 17/11/2026
+
+Corredor reduzido de 151 para 78 unidades de desenho, mantendo a largura do carro. A cobertura passou de aproximadamente 300 × 229 para 162 × 87 unidades; sala, canteiro, árvores e apoios foram reposicionados no mesmo modelo usado pelas vistas de cima e interna. A primeira parada está mais perto da cobertura e a segunda faz uma passagem mais curta. Proporções visuais, sem pretensão de reproduzir medidas reais.

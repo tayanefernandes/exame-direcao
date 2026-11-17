@@ -1,8 +1,8 @@
 'use strict';
 const $ = id => document.getElementById(id);
 const options = {
-  far: {number:2, title:'Depois do telhado quadrado', detail:'Opção 2: encoste depois de passar sob o telhado.', frame:'350 610 455 730', guide:'M 636 680 Q 626 720 628 762 L 628 940', labels:[[490,665,'Saída · R. Diadema'],[430,1175,'Passagem coberta']], align:.75},
-  near: {number:1, title:'Antes do telhado quadrado', detail:'Opção 1: encoste antes do telhado. Ao sair da vaga, siga por baixo dele.', frame:'350 1120 455 630', guide:'M 628 1250 L 628 1605', labels:[[445,1190,'Cobertura'],[646,1320,'Canteiro'],[430,1715,'Entrada · R. Cerquilho']], align:.5}
+  far: {number:2, title:'Depois do telhado quadrado', detail:'Opção 2: encoste depois de passar sob o telhado.', frame:'465 850 245 450', guide:'M628 850V1148', labels:[[540,900,'Saída'],[520,1220,'Cobertura']], align:.71},
+  near: {number:1, title:'Antes do telhado quadrado', detail:'Opção 1: encoste antes do telhado. Ao sair da vaga, siga por baixo dele.', frame:'465 1120 245 460', guide:'M628 1250V1490', labels:[[520,1190,'Cobertura'],[646,1380,'Canteiro'],[530,1550,'Entrada']], align:.5}
 };
 const phases = [
   ['Prepare a aproximação','Observe os retrovisores e o entorno. Sinalize à direita antes de se aproximar.','→ Direita'],
@@ -64,12 +64,12 @@ function update(){
   $('wheel-note').textContent=Math.abs(steer)<1?'Centrado':steer>0?'Virando à direita':'Corrigindo à esquerda';
   const phase=t<.14?0:t>=.82?3:u<options[place].align?1:2;
   const phaseData=phases.map(row=>[...row]);
-  if(place==='far'&&phase===1&&u<.5)phaseData[1]=['Passe sob a cobertura','Siga pelo corredor livre, à esquerda da sala de apoio. Observe os pilares e o caminho à frente.','→ Direita'];
+  if(place==='far'&&phase===1&&u<.42)phaseData[1]=['Passe sob a cobertura','Siga pelo corredor livre, à esquerda da sala de apoio. Observe os pilares e o caminho à frente.','→ Direita'];
   else if(place==='far'&&phase===1)phaseData[1]=['Aproxime após a cobertura','Depois da passagem coberta, aproxime devagar da guia à direita. O trecho final é estimado.','→ Direita'];
   else if(place==='near'&&phase===1)phaseData[1]=['Aproxime antes da cobertura','Aproxime do canteiro à direita, antes da sala e dos pilares. Preserve espaço para alinhar.','→ Direita'];
   const other=PATIO_ENV.companion(t);companion.toggleAttribute('hidden',place!=='near'||view==='photo');
   companion.setAttribute('transform',`translate(${other.x} ${other.y}) rotate(${other.angle*180/Math.PI})`);
-  const underRoof=x>=418&&x<=718&&y>=1018&&y<=1247;
+  const roof=PATIO_ENV.canopy,underRoof=x>=roof.x&&x<=roof.x+roof.width&&y>=roof.y&&y<=roof.y+roof.depth;
   $('vehicle').dataset.underRoof=String(underRoof);
   $('scene').dataset.place=place;
   if(phase!==activePhase||place==='far'){ 
