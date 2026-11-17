@@ -85,3 +85,6 @@ Corredor reduzido de 151 para 78 unidades de desenho, mantendo a largura do carr
 
 ### Planta revista com Street View em 17/11/2026
 Substitui a compressão anterior por uma planta interpretada das vistas aérea e de rua: galpão longitudinal, faixa verde junto à fachada, corredor delimitado pelos canteiros, cobertura quadrada e sala lateral. O piso pavimentado deixa de ocupar todo o terreno. Pilares ficam nas bordas da passagem, com portões nos extremos. As duas vistas compartilham piso, canteiros, cobertura e obstáculos. As distâncias e o término da segunda manobra continuam estimados, sem levantamento métrico.
+
+### Alinhamento direto da imagem aérea
+A referência é a imagem completa de 602 × 763 pixels. Galpão e cobertura foram traçados em coordenadas dessa imagem; a transformação uniforme (1,5 com origem 150,500) é a mesma no SVG da foto e do desenho. Os enquadramentos por opção não mudam ao trocar de vista. O botão Comparar sobrepõe a planta à imagem para conferência. Árvores ocultam parte do piso; limites ocultos, sala e pilares continuam aproximados a partir das vistas de rua.

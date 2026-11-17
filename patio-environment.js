@@ -1,58 +1,65 @@
 'use strict';
 
-// Planta interpretada das vistas aérea e de rua. Não representa um levantamento métrico.
+// Todos os pontos são traçados sobre a mesma imagem aérea, de 602 × 763 px.
+// Uma única transformação uniforme é usada pela foto, pelo desenho e pela simulação.
 const PATIO_ENV = {
- canopy:{x:525,y:1110,width:175,depth:210,height:58},
- building:{x:230,y:810,width:245,depth:890,height:74},
- room:{x:640,y:1210,width:60,depth:98,height:43},
- lane:{left:525,right:628},
- posts:[{x:531,y:1117},{x:531,y:1215},{x:531,y:1313},{x:630,y:1117},{x:630,y:1313},{x:699,y:1117},{x:699,y:1313}],
- bollards:[{x:604,y:1340},{x:626,y:1340}],
- fences:[[{x:740,y:880},{x:770,y:1650}],
-  [{x:500,y:1690},{x:525,y:1690}],[{x:628,y:1690},{x:770,y:1650}],
-  [{x:500,y:810},{x:548,y:810}],[{x:619,y:810},{x:740,y:880}]],
- paving:'M525 810L628 810L628 1100L705 1100L705 1320L628 1320L628 1660L617 1690L510 1690L525 1650L525 1320L525 1320L525 1110L525 1110Z',
- companion(progress){
-  const u=Math.max(0,Math.min(1,(progress-.14)/.68));
-  return {x:574,y:1360-290*u,angle:0};
- },
+ photo:{href:'assets/patio-referencia.png',width:602,height:763,scale:1.5,x:150,y:500},
+ point(x,y){return {x:150+x*1.5,y:500+y*1.5};},
+ polygon(points){return points.map(([x,y])=>this.point(x,y));},
+ path(points,close=false){return this.polygon(points).map((p,i)=>`${i?'L':'M'}${p.x} ${p.y}`).join(' ')+(close?'Z':'');},
+ // Telhados visíveis na foto. A sala e os pilares são inferidos das vistas de rua.
+ buildingOutline:[[26,20],[205,16],[219,655],[31,662]],
+ canopyOutline:[[248,321],[351,321],[351,447],[248,447]],
+ leftEdge:[[281,18],[268,95],[255,200],[250,321],[250,447],[253,545],[256,650],[260,716]],
+ rightEdge:[[315,18],[316,95],[318,200],[318,321],[317,447],[315,545],[310,650],[304,716]],
+ siteEdge:[[316,18],[363,60],[416,119],[459,204],[470,293],[455,413],[437,540],[422,642],[388,706],[304,716]],
+ treeSpecs:[[345,123,33],[363,220,38],[365,310,37],[385,414,42],[361,506,38],[346,606,40],[333,674,31]],
+ posts:[],bollards:[],fences:[],paths:{near:[],far:[]},
+ targets:{near:{x:605.45,y:1302.5,stripeX:617},far:{x:608.45,y:875,stripeX:620}},
+ companion(progress){const u=Math.max(0,Math.min(1,(progress-.14)/.68));return {x:571.5,y:1257.5-285*u,angle:0};},
  install(base){
-  const roof=this.canopy,room=this.room;
-  const rectangle=(x,y,w,d)=>`M${x} ${y}L${x+w} ${y}L${x+w} ${y+d}L${x} ${y+d}Z`;
-  base.innerHTML=`<rect x="200" y="760" width="620" height="1000" class="patio-site-ground"/>
-   <path class="prop-paving prop-ground" d="${this.paving}"/>
-   <path class="prop-grass" d="M475 810L525 810L525 1650L510 1690L475 1690Z"/>
-   <path class="prop-grass" d="M628 810L740 880L770 1650L628 1690L628 1320L705 1320L705 1100L628 1100Z"/>
-   <path class="prop-roof" d="${rectangle(230,810,245,890)}"/>
-   <path class="prop-roof patio-canopy-plan" d="${rectangle(roof.x,roof.y,roof.width,roof.depth)}"/>
-   <path class="prop-edge" d="M525 810L525 1650L510 1690"/>
-   <path class="prop-estimated" d="M628 810L628 1100"/>
-   <path class="prop-estimated" d="M628 1320L628 1660Q628 1675 617 1690"/>
-   ${[[680,950,31],[724,1070,37],[690,1430,37],[696,1580,34]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" class="prop-tree"/>`).join('')}
-   ${Array.from({length:13},(_,i)=>`<path class="prop-line" d="M230 ${840+i*65}H475"/>`).join('')}
-   <path class="patio-building-windows" d="M473 825V1685"/>
-   <path class="patio-gate" d="M525 1690H617 M548 810H619"/>`;
-  const layer=document.createElementNS('http://www.w3.org/2000/svg','g');
-  layer.setAttribute('class','patio-environment');
+  const photo=document.getElementById('aerial'),p=this.photo;
+  photo.setAttribute('href',p.href);photo.setAttribute('width',p.width);photo.setAttribute('height',p.height);
+  photo.setAttribute('transform',`translate(${p.x} ${p.y}) scale(${p.scale})`);
+  this.building={height:74};
+  const c=this.point(248,321);this.canopy={x:c.x,y:c.y,width:154.5,depth:189,height:55};
+  const r=this.point(319,390);this.room={x:r.x,y:r.y,width:43.5,depth:81,height:41};
+  this.posts=this.polygon([[251,324],[251,382],[251,444],[316,324],[316,444],[348,324],[348,444]]);
+  this.bollards=this.polygon([[293,466],[314,466]]);
+  this.fences=[[[315,18],[459,204]],[[459,204],[455,413]],[[455,413],[422,642]],[[422,642],[388,706]],[[388,706],[304,716]],[[219,690],[260,716]]].map(points=>this.polygon(points));
+  this.pavingOutline=[...this.leftEdge,...[...this.rightEdge].reverse()];
+  const eastWall=this.buildingOutline.slice(1,3),grassLeft=[...eastWall,[260,716],...[...this.leftEdge].reverse()];
+  base.innerHTML=`<rect x="150" y="500" width="903" height="1144.5" class="patio-site-ground"/>
+   <path class="prop-paving prop-ground" d="${this.path(this.pavingOutline,true)}"/>
+   <path class="prop-grass" d="${this.path(grassLeft,true)}"/>
+   <path class="prop-grass" d="${this.path([...this.rightEdge,...[...this.siteEdge].reverse()],true)}"/>
+   <path class="prop-roof" d="${this.path(this.buildingOutline,true)}"/>
+   <path class="prop-roof patio-canopy-plan" d="${this.path(this.canopyOutline,true)}"/>
+   <path class="prop-edge" d="${this.path(this.leftEdge)}"/>
+   <path class="prop-estimated" d="${this.path(this.rightEdge)}"/>
+   ${this.treeSpecs.map(([x,y,r])=>{const p=this.point(x,y);return `<circle class="prop-tree" cx="${p.x}" cy="${p.y}" r="${r*1.5}"/>`;}).join('')}
+   ${Array.from({length:13},(_,i)=>`<path class="prop-line" d="${this.path([[27,35+i*48],[207+i*.9,32+i*48]])}"/>`).join('')}
+   <path class="patio-building-windows" d="${this.path(eastWall)}"/>
+   <path class="patio-gate" d="${this.path([[260,716],[304,716]])}"/>`;
+  const layer=document.createElementNS('http://www.w3.org/2000/svg','g');layer.setAttribute('class','patio-environment');
+  const room=this.room,roof=this.canopy;
   layer.innerHTML=`<rect class="patio-room" x="${room.x}" y="${room.y}" width="${room.width}" height="${room.depth}"/>
-   <rect class="patio-room-blue" x="${room.x}" y="${room.y}" width="10" height="${room.depth}"/>
-   <path class="patio-room-door" d="M657 1308v-18h18v18 M640 1220h9v25h-9"/>
-   <path class="patio-roof-beam" d="M531 1117H699 M531 1313H699 M531 1215H638 M630 1117V1313"/>
-   ${this.posts.map(p=>`<circle class="patio-post" cx="${p.x}" cy="${p.y}" r="2.4"/>`).join('')}
-   ${this.bollards.map(p=>`<circle class="patio-bollard" cx="${p.x}" cy="${p.y}" r="1.7"/>`).join('')}
+   <rect class="patio-room-blue" x="${room.x}" y="${room.y}" width="6" height="${room.depth}"/>
+   <path class="patio-roof-beam" d="${this.path([[251,324],[348,324]])} ${this.path([[251,444],[348,444]])} ${this.path([[316,324],[316,444]])}"/>
+   ${this.posts.map(p=>`<circle class="patio-post" cx="${p.x}" cy="${p.y}" r="2.2"/>`).join('')}
+   ${this.bollards.map(p=>`<circle class="patio-bollard" cx="${p.x}" cy="${p.y}" r="1.6"/>`).join('')}
    ${this.fences.map(([a,b])=>`<path class="patio-perimeter" d="M${a.x} ${a.y}L${b.x} ${b.y}"/>`).join('')}
-   <path class="patio-drain" d="M525 1615H628"/>
-   <path class="patio-roof-outline" d="${rectangle(roof.x,roof.y,roof.width,roof.depth)}"/>`;
+   <path class="patio-roof-outline" d="${this.path(this.canopyOutline,true)}"/>`;
   base.append(layer);
  },
- paths:{near:[],far:[]}
+ frameFor(place){return place==='near'?'390 930 410 690':'390 490 410 750';},
+ guideFor(place){return this.path(place==='near'?this.rightEdge.slice(4):this.rightEdge.slice(0,4));}
 };
 const patioEase=u=>u*u*u*(10+u*(-15+6*u));
 for(let i=0;i<=160;i++){
  const u=i/160;
- PATIO_ENV.paths.near.push([558+(610.45-558)*patioEase(u),1660-270*u]);
- const turn=Math.max(0,(u-.55)/.45);
- PATIO_ENV.paths.far.push([574+(610.45-574)*patioEase(turn),1370-450*u]);
+ PATIO_ENV.paths.near.push([559.5+(PATIO_ENV.targets.near.x-559.5)*patioEase(u),1550-247.5*u]);
+ const turn=Math.max(0,(u-.52)/.48);
+ PATIO_ENV.paths.far.push([571.5+(PATIO_ENV.targets.far.x-571.5)*patioEase(turn),1227.5-352.5*u]);
 }
-PATHS.near=PATIO_ENV.paths.near;
-PATHS.far=PATIO_ENV.paths.far;
+PATHS.near=PATIO_ENV.paths.near;PATHS.far=PATIO_ENV.paths.far;

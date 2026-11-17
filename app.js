@@ -1,8 +1,8 @@
 'use strict';
 const $ = id => document.getElementById(id);
 const options = {
-  far: {number:2, title:'Depois do telhado quadrado', detail:'Opção 2: encoste depois de passar sob o telhado.', frame:'415 760 370 650', guide:'M628 810V1100', labels:[[545,835,'Saída'],[495,1250,'Cobertura']], align:.71},
-  near: {number:1, title:'Antes do telhado quadrado', detail:'Opção 1: encoste antes do telhado. Ao sair da vaga, siga por baixo dele.', frame:'415 1040 370 700', guide:'M628 1320V1660', labels:[[495,1250,'Cobertura'],[665,1500,'Canteiro'],[520,1720,'Entrada']], align:.5}
+  far: {number:2, title:'Depois do telhado quadrado', detail:'Opção 2: encoste depois de passar sob o telhado.', frame:PATIO_ENV.frameFor('far'), guide:PATIO_ENV.guideFor('far'), labels:[[563,545,'Saída'],[500,1050,'Cobertura']], align:.71},
+  near: {number:1, title:'Antes do telhado quadrado', detail:'Opção 1: encoste antes do telhado. Ao sair da vaga, siga por baixo dele.', frame:PATIO_ENV.frameFor('near'), guide:PATIO_ENV.guideFor('near'), labels:[[500,1050,'Cobertura'],[675,1410,'Canteiro'],[535,1596,'Entrada']], align:.5}
 };
 const phases = [
   ['Prepare a aproximação','Observe os retrovisores e o entorno. Sinalize à direita antes de se aproximar.','→ Direita'],
@@ -20,8 +20,9 @@ $('base').after(companion);
 const cockpit=new PatioCockpit($('cockpit-view'),$('base'));
 const clamp=(x,min,max)=>Math.max(min,Math.min(max,x));
 // A roda direita termina sobre a faixa, com a carroceria próxima à guia.
-const parkingTarget={stripeX:622,carScale:.7,rightWheelX:16.5};
-function parkingPoint(x,y,u){const progress=clamp(u,0,1),ease=progress*progress*(3-2*progress);const finalX=PATHS[place].at(-1)[0];const targetX=parkingTarget.stripeX-parkingTarget.rightWheelX*parkingTarget.carScale;return [x+(targetX-finalX)*ease,y];}
+const parkingTarget={carScale:.7,rightWheelX:16.5};
+const stripeX=()=>PATIO_ENV.targets[place].stripeX;
+function parkingPoint(x,y,u){const progress=clamp(u,0,1),ease=progress*progress*(3-2*progress);const finalX=PATHS[place].at(-1)[0];const targetX=stripeX()-parkingTarget.rightWheelX*parkingTarget.carScale;return [x+(targetX-finalX)*ease,y];}
 const at=(u)=>{const path=PATHS[place],i=clamp(u,0,1)*(path.length-1),j=Math.floor(i),a=path[j],b=path[Math.min(j+1,path.length-1)],d=i-j;return parkingPoint(a[0]+(b[0]-a[0])*d,a[1]+(b[1]-a[1])*d,u);};
 function heading(u){const [ax,ay]=at(u-.016),[bx,by]=at(u+.016);return Math.atan2(bx-ax,ay-by);}
 // Demonstra o acionamento e um desarme durante a correção do volante.
@@ -64,11 +65,11 @@ function update(){
   $('wheel-note').textContent=Math.abs(steer)<1?'Centrado':steer>0?'Virando à direita':'Corrigindo à esquerda';
   const phase=t<.14?0:t>=.82?3:u<options[place].align?1:2;
   const phaseData=phases.map(row=>[...row]);
-  if(place==='far'&&phase===1&&u<.6)phaseData[1]=['Passe sob a cobertura','Siga pelo corredor livre, à esquerda da sala de apoio. Observe os pilares e o caminho à frente.','→ Direita'];
+  if(place==='far'&&phase===1&&u<.64)phaseData[1]=['Passe sob a cobertura','Siga pelo corredor livre, à esquerda da sala de apoio. Observe os pilares e o caminho à frente.','→ Direita'];
   else if(place==='far'&&phase===1)phaseData[1]=['Aproxime após a cobertura','Depois da passagem coberta, aproxime devagar da guia à direita. O trecho final é estimado.','→ Direita'];
   else if(place==='near'&&phase===1)phaseData[1]=['Aproxime antes da cobertura','Aproxime do canteiro à direita, antes da sala e dos pilares. Preserve espaço para alinhar.','→ Direita'];
-  const other=PATIO_ENV.companion(t);companion.toggleAttribute('hidden',place!=='near'||view==='photo');
-  companion.setAttribute('transform',`translate(${other.x} ${other.y}) rotate(${other.angle*180/Math.PI})`);
+  const other=PATIO_ENV.companion(t);companion.toggleAttribute('hidden',place!=='near');
+  companion.setAttribute('transform',`translate(${other.x} ${other.y}) rotate(${other.angle*180/Math.PI}) scale(.7)`);
   const roof=PATIO_ENV.canopy,underRoof=x>=roof.x&&x<=roof.x+roof.width&&y>=roof.y&&y<=roof.y+roof.depth;
   $('vehicle').dataset.underRoof=String(underRoof);
   $('scene').dataset.place=place;
@@ -91,11 +92,11 @@ function configure(){
   $('route-path').setAttribute('d',PATHS[place].map(([x,y],i,path)=>{const point=parkingPoint(x,y,i/(path.length-1));return `${i?'L':'M'} ${point[0]} ${point[1]}`;}).join(' '));
   $('guide').setAttribute('d',o.guide);
   const parkingY=PATHS[place].at(-1)[1];
-  $('parking-marking').setAttribute('d',`M${parkingTarget.stripeX} ${parkingY-34} V${parkingY+12}`);
+  $('parking-marking').setAttribute('d',`M${stripeX()} ${parkingY-34} V${parkingY+12}`);
   $('map-labels').replaceChildren(...o.labels.map(([x,y,label])=>{const n=document.createElementNS('http://www.w3.org/2000/svg','text');n.setAttribute('x',x);n.setAttribute('y',y);n.textContent=label;return n;}));
   document.querySelectorAll('.option').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.place===place)));
   document.querySelectorAll('.view').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===view)));
-  $('aerial').toggleAttribute('hidden',view!=='photo');$('base').toggleAttribute('hidden',view!=='draw');
+  $('aerial').toggleAttribute('hidden',view!=='photo'&&view!=='compare');$('base').toggleAttribute('hidden',view!=='draw'&&view!=='compare');
   $('scene').toggleAttribute('hidden',view==='cockpit');$('cockpit-view').hidden=view!=='cockpit';
   $('cockpit-caption').hidden=view!=='cockpit';$('scene').closest('.map-wrap').dataset.view=view;
   $('sim-view-tag').textContent=view==='cockpit'?'Vista do motorista':'Vista de cima';

@@ -300,3 +300,6 @@ body.training-focus-open{overflow:hidden}.training-player.training-focused{posit
 
 /* Planta do pátio: canteiros contínuos, circulação definida e cobertura quadrada. */
 .patio-site-ground{fill:#9eaf8a}.patio-canopy-plan{fill:#dce3de;fill-opacity:.22;stroke:#889d91;stroke-width:1.5}.patio-roof-outline{fill:none;stroke:#6c8377;stroke-width:1.5}.patio-room-blue{fill:#668999}.patio-gate{fill:none;stroke:#e4e9df;stroke-width:3;stroke-dasharray:2 2}#map-labels text{font-size:11px;stroke-width:3px}.patio-roof-beam{stroke-width:1.6}.patio-perimeter{stroke-width:1.8}.prop-estimated{stroke-dasharray:none;stroke:#b6bcb0}.prop-tree{fill:#638959;fill-opacity:.5;stroke:#78976b}
+
+/* Mesma escala e origem na foto e na planta. Comparação sem reposicionar o carro. */
+.map-wrap[data-view=compare] #base{opacity:.54}.map-wrap[data-view=compare] .prop-roof{fill:#f7f6f1;fill-opacity:.42;stroke:#fff;stroke-width:2}.map-wrap[data-view=compare] .patio-site-ground,.map-wrap[data-view=compare] .prop-grass,.map-wrap[data-view=compare] .prop-tree,.map-wrap[data-view=compare] .prop-paving{fill-opacity:0;stroke-opacity:.35}.map-wrap[data-view=compare] .patio-room{fill-opacity:.25}.map-wrap[data-view=compare] #map-labels{opacity:.8}.map-wrap[data-view=compare] .prop-line{opacity:.3}
