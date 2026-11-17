@@ -82,3 +82,6 @@ Atualização de 17/11/2026 com base na gravação fornecida do short https://ww
 ### Correção das proporções em 17/11/2026
 
 Corredor reduzido de 151 para 78 unidades de desenho, mantendo a largura do carro. A cobertura passou de aproximadamente 300 × 229 para 162 × 87 unidades; sala, canteiro, árvores e apoios foram reposicionados no mesmo modelo usado pelas vistas de cima e interna. A primeira parada está mais perto da cobertura e a segunda faz uma passagem mais curta. Proporções visuais, sem pretensão de reproduzir medidas reais.
+
+### Planta revista com Street View em 17/11/2026
+Substitui a compressão anterior por uma planta interpretada das vistas aérea e de rua: galpão longitudinal, faixa verde junto à fachada, corredor delimitado pelos canteiros, cobertura quadrada e sala lateral. O piso pavimentado deixa de ocupar todo o terreno. Pilares ficam nas bordas da passagem, com portões nos extremos. As duas vistas compartilham piso, canteiros, cobertura e obstáculos. As distâncias e o término da segunda manobra continuam estimados, sem levantamento métrico.
